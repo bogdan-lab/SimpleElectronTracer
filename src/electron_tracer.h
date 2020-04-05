@@ -1,0 +1,77 @@
+#pragma once
+#include <vector>
+#include <string>
+using namespace std;
+
+struct Point{
+Point(double xx, double yy, double zz);
+Point();
+double x;
+double y;
+double z;
+};
+
+
+struct PtStatistics
+{
+PtStatistics();
+PtStatistics(const Point& pp, const vector<double>& pV, const int p_vol_count, const int p_surf_count);
+Point p;
+vector<double> V;  //velocity, v[0] - vx, v[1] = vy, v[2] = vz
+int vol_count;
+int surf_count;
+};
+
+class Surface{
+public:
+    Surface();
+    Surface(string& line);
+    void SaveInfo(PtStatistics& pt_stat, vector<Point>& pt_tragectory);
+    void WriteInfo();
+    Point GetRandomPoint() const;
+    void PrintSurface();
+
+    int GetCoorFlag() const;
+    double GetCoorVal() const;
+    vector<double> GetXbnd() const ;
+    vector<double> GetYbnd() const ;
+    vector<double> GetZbnd() const ;
+    double GetRefl() const ;
+    bool GetSaveStatFlag();
+private:
+    vector<PtStatistics> stat;      //vector of particle statistics
+    bool save_stat;             //flag for saving statistics
+    vector<vector<Point>> tragectories;     //saved particles trajectories
+    int coor_flag;      //0 - for x, 1 - for y, 2 for z
+    double coor_val;            //coordinate of surface position
+    vector<double> x_bnd;       //surface boundaries not all required
+    vector<double> y_bnd;
+    vector<double> z_bnd;
+    string label;           //surface name
+    double R;           //reflection
+};
+
+
+class Particle{
+public:
+    Particle(const Surface& s);
+    Point GetCrossPoint(const Surface& s, bool& cross_flag);
+    double GetDistanceToSurface(const Surface& s);
+    int GetReflectionSurfaceID(const vector<Surface>& walls);
+    bool ReflectSurface(Surface& s);
+    void MakeGasCollision(double pt_dist);
+
+private:
+    Point p;
+    vector<double> V;
+    int vol_count;
+    int surf_count;
+    vector<Point> tragectory;
+};
+
+
+
+
+
+double get_distance_in_gas(double mfp);
+vector<double> get_random_V(int direction);
