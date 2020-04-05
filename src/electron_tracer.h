@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <random>
 using namespace std;
 
 struct Point{
@@ -28,7 +29,7 @@ public:
     Surface(string& line);
     void SaveInfo(PtStatistics& pt_stat, vector<Point>& pt_tragectory);
     void WriteInfo();
-    Point GetRandomPoint() const;
+    Point GetRandomPoint(default_random_engine& rnd_gen) const;
     void PrintSurface();
 
     int GetCoorFlag() const;
@@ -54,13 +55,15 @@ private:
 
 class Particle{
 public:
-    Particle(const Surface& s);
+    Particle(const Surface& s, default_random_engine& rnd_gen);
     Point GetCrossPoint(const Surface& s, bool& cross_flag);
     double GetDistanceToSurface(const Surface& s);
     int GetReflectionSurfaceID(const vector<Surface>& walls);
     bool ReflectSurface(Surface& s);
-    void MakeGasCollision(double pt_dist);
-
+    void MakeGasCollision(double pt_dist, default_random_engine& rnd_gen);
+    Point GetPosition() const;
+    double GetDistanceInGas(double mfp, default_random_engine& rnd_gen) const;
+    vector<double>GetRandVel(int direction, default_random_engine& rnd_gen) const;
 private:
     Point p;
     vector<double> V;
@@ -73,5 +76,5 @@ private:
 
 
 
-double get_distance_in_gas(double mfp);
-vector<double> get_random_V(int direction);
+void CalculateOneParticle(vector<Surface>& walls, double mfp, default_random_engine& rnd_gen);
+vector<double> get_random_number(size_t seed, int num);

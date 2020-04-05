@@ -62,23 +62,21 @@ void Surface::WriteInfo(){
 }
 
 
-Point Surface::GetRandomPoint() const {
+Point Surface::GetRandomPoint(default_random_engine& rnd_gen) const {
     Point p;
-    unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-    default_random_engine generator (seed);
     uniform_real_distribution<double> rnd(0.0,1.0);
     if (coor_flag==0){
         p.x = coor_val;
-        p.y = rnd(generator)*(y_bnd[1]-y_bnd[0]) + y_bnd[0];
-        p.z = rnd(generator)*(z_bnd[1]-z_bnd[0]) + z_bnd[0];
+        p.y = rnd(rnd_gen)*(y_bnd[1]-y_bnd[0]) + y_bnd[0];
+        p.z = rnd(rnd_gen)*(z_bnd[1]-z_bnd[0]) + z_bnd[0];
     } else if (coor_flag==1){
         p.y = coor_val;
-        p.x = rnd(generator)*(x_bnd[1]-x_bnd[0]) + x_bnd[0];
-        p.z = rnd(generator)*(z_bnd[1]-z_bnd[0]) + z_bnd[0];
+        p.x = rnd(rnd_gen)*(x_bnd[1]-x_bnd[0]) + x_bnd[0];
+        p.z = rnd(rnd_gen)*(z_bnd[1]-z_bnd[0]) + z_bnd[0];
     } else{
         p.z = coor_val;
-        p.x = rnd(generator)*(x_bnd[1]-x_bnd[0]) + x_bnd[0];
-        p.y = rnd(generator)*(y_bnd[1]-y_bnd[0]) + y_bnd[0];
+        p.x = rnd(rnd_gen)*(x_bnd[1]-x_bnd[0]) + x_bnd[0];
+        p.y = rnd(rnd_gen)*(y_bnd[1]-y_bnd[0]) + y_bnd[0];
     }
     return p;
 }
@@ -163,14 +161,12 @@ double Surface::GetRefl() const {return R;}
 bool Surface::GetSaveStatFlag(){return save_stat;}
 
 
-vector<double> get_random_V(int direction){
+vector<double> Particle::GetRandVel(int direction, default_random_engine& rnd_gen) const {
     /*0 - for x, 1 - for y, 2 - for z, 3 - for 3D*/
     vector<double> v(3, 0.0);
-    unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-    default_random_engine generator (seed);
-    uniform_real_distribution<double> rnd(0.0,1.0);
-    double phi = rnd(generator)*2*M_PI;
-    double costheta = rnd(generator);
+    uniform_real_distribution<double> rnd(0.0, 1.0);
+    double phi = rnd(rnd_gen)*2*M_PI;
+    double costheta = rnd(rnd_gen);
     double theta = acos(costheta);
     if (direction==0){
         v[0] = costheta;
@@ -188,7 +184,7 @@ vector<double> get_random_V(int direction){
         v[0] = sin(theta)*sin(phi);
     }
     else {
-        costheta = rnd(generator)*2 - 1;    //variate from -1 to 1
+        costheta = rnd(rnd_gen)*2 - 1;    //variate from -1 to 1
         theta = acos(costheta);
         v[2] = costheta;
         v[1] = sin(theta)*cos(phi);
@@ -199,23 +195,24 @@ vector<double> get_random_V(int direction){
 
 
 
-double get_distance_in_gas(double mfp){
-    unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-    default_random_engine generator (seed);
-    uniform_real_distribution<double> rnd(0.0,1.0);
-    return mfp*log(1.0/(1.0 - rnd(generator)));
+double Particle::GetDistanceInGas(double mfp, default_random_engine& rnd_gen) const{
+    uniform_real_distribution<double> rnd(0.0, 1.0);
+    return mfp*log(1.0/(1.0 - rnd(rnd_gen)));
 }
 
 
 
-Particle::Particle(const Surface &s){
-    p = s.GetRandomPoint();
-    V = get_random_V(1);     //directed along positive y
+Particle::Particle(const Surface &s, default_random_engine& rnd_gen){
+    p = s.GetRandomPoint(rnd_gen);
+    //p = Point(50.0, 0.0, 50.0);
     vol_count = 0;
     surf_count = 0;
     vector<Point> tmp;
     tmp.push_back(p);
     tragectory = tmp;
+    //rnd =  uniform_real_distribution<double>(0.0, 1.0);
+    V = this->GetRandVel(1, rnd_gen);     //directed along positive y
+    //  V = {0.0, 1.0, 0.0};
 }
 
 Point Particle::GetCrossPoint(const Surface &s, bool& cross_flag){
@@ -340,20 +337,59 @@ bool Particle::ReflectSurface(Surface &s){
 }
 
 
-void Particle::MakeGasCollision(double pt_dist){
+void Particle::MakeGasCollision(double pt_dist, default_random_engine& rnd_gen){
     vol_count++;
     double t = pt_dist;     //since velocity is 1
     p.x+=V[0]*t;
     p.y+=V[1]*t;
     p.z+=V[2]*t;
     tragectory.push_back(p);
-    V = get_random_V(3);
+    V = this->GetRandVel(3, rnd_gen);
+}
+
+
+Point Particle::GetPosition() const{return p;}
+
+
+
+vector<double> get_random_number(size_t seed, int num){
+    //unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+    default_random_engine generator (seed);
+    uniform_real_distribution<double> rnd(0.0,1.0);
+    vector<double> vr;
+    for(int i=0; i<num; i++){
+        vr.push_back(rnd(generator));
+    }
+    return vr;
 }
 
 
 
+void CalculateOneParticle(vector<Surface>& walls, double mfp, default_random_engine& rnd_gen){
+    Particle pt(walls[0], rnd_gen);
+    bool alive_flag = true;
+    while (alive_flag){
+        //get_collision distance
+        double gas_dist = pt.GetDistanceInGas(mfp, rnd_gen);
+        //compare with wall distance
+        int ref_wall_idx = pt.GetReflectionSurfaceID(walls);
+        double wall_dist = pt.GetDistanceToSurface(walls[ref_wall_idx]);
+        if (wall_dist > gas_dist){
+            pt.MakeGasCollision(gas_dist, rnd_gen);
+        }
+        else{
+            alive_flag = pt.ReflectSurface(walls[ref_wall_idx]);
+        }
+    }
+}
+
+
 
 int main(){
+    //PREPARE RANDOM GENERATOR
+    unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+    default_random_engine rnd_gen(seed);
+
     //READ GEOMETRY
     string line;
     ifstream f("geometry.dat");
@@ -376,24 +412,11 @@ int main(){
     mfp = 1e5;
     printf("MFP = %.3lf cm\n" , mfp);
 
-    for(size_t i=0; i<1000000; i++){
-        //printf("PT %i\t", i);
-        Particle pt(walls[0]);
-        bool alive_flag = true;
-        while (alive_flag){
-            //get_collision distance
-            double gas_dist = get_distance_in_gas(mfp);
-            //compare with wall distance
-            int ref_wall_idx = pt.GetReflectionSurfaceID(walls);
-            double wall_dist = pt.GetDistanceToSurface(walls[ref_wall_idx]);
-            if (wall_dist > gas_dist){
-                pt.MakeGasCollision(gas_dist);
-            }
-            else{
-                alive_flag = pt.ReflectSurface(walls[ref_wall_idx]);
-            }
-        }
+    for(size_t i=0; i<10000000; i++){
+        CalculateOneParticle(walls, mfp, rnd_gen);
     }
+
+
     for(size_t i=0; i<walls.size(); i++){
         if (walls[i].GetSaveStatFlag()){
             walls[i].WriteInfo();
