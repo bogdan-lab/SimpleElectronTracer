@@ -60,7 +60,7 @@ public:
     bool ReflectSurface(Surface& s);
     void MakeGasCollision(double pt_dist, default_random_engine& rnd_gen);
     Point GetPosition() const;
-    double GetDistanceInGas(const double mfp, default_random_engine& rnd_gen) const;
+    double GetDistanceInGas(const double pressure, default_random_engine& rnd_gen) const;
     vector<double>GetRandVel(int direction, default_random_engine& rnd_gen) const;
 private:
     Point p;
@@ -75,4 +75,3 @@ private:
 
 
 void RunParticleGroup(vector<Surface>& walls, const double mfp, default_random_engine& rnd_gen, const size_t group_len);
-vector<double> get_random_number(size_t seed, int num);

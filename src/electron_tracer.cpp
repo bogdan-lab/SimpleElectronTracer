@@ -172,10 +172,17 @@ vector<double> Particle::GetRandVel(int direction, default_random_engine& rnd_ge
 
 
 
-double Particle::GetDistanceInGas(const double mfp, default_random_engine& rnd_gen) const{
+double Particle::GetDistanceInGas(const double pressure, default_random_engine& rnd_gen) const{
+    if (pressure==0.0){
+        return 1e20;        //never collide with atom
+    }
     uniform_real_distribution<double> rnd(0.0, 1.0);
+    double sigma = 2e-16;       //cm^2
+    double T = 300;         //K
+    double k = 1.38e-23;     //J/K
+    double N = pressure/(k*T)*1e-6;    //cm^-3
+    double mfp = 1.0/(N*sigma);         //cm
     return mfp*log(1.0/(1.0 - rnd(rnd_gen)));
-    //return 1e5;
 }
 
 
@@ -329,13 +336,13 @@ void Particle::MakeGasCollision(double pt_dist, default_random_engine& rnd_gen){
 Point Particle::GetPosition() const{return p;}
 
 
-void RunParticleGroup(vector<Surface>& walls, const double mfp, default_random_engine& rnd_gen, const size_t group_len){
+void RunParticleGroup(vector<Surface>& walls, const double pressure, default_random_engine& rnd_gen, const size_t group_len){
     for(size_t i=0; i<group_len; i++){
         Particle pt(walls[0], rnd_gen);
         bool alive_flag = true;
         while (alive_flag){
             //get_collision distance
-            double gas_dist = pt.GetDistanceInGas(mfp, rnd_gen);
+            double gas_dist = pt.GetDistanceInGas(pressure, rnd_gen);
             //compare with wall distance
             int ref_wall_idx = pt.GetReflectionSurfaceID(walls);
             double wall_dist = pt.GetDistanceToSurface(walls[ref_wall_idx]);
@@ -352,10 +359,6 @@ void RunParticleGroup(vector<Surface>& walls, const double mfp, default_random_e
 
 
 int main(){
-    //PREPARE RANDOM GENERATOR
-    unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-    default_random_engine rnd_gen(seed);
-
     //READ GEOMETRY
     string line;
     ifstream f("geometry.dat");
@@ -368,15 +371,9 @@ int main(){
         walls.push_back(s);
     }
     f.close();
-    //CALCULATE MFP
-    double sigma = 2e-16;       //cm^2
-    double p = 5;       //Pa
-    double T = 300;         //K
-    double k = 1.38e-23;     //J/K
-    double N = p/(k*T)*1e-6;    //cm^-3
-    const double mfp = 1.0/(N*sigma);
+    const double pressure = 0.0;   //Pa
     const size_t group_len = 70000000;
-    printf("MFP = %.3lf cm\n" , mfp);
+    printf("Pressure = %.3lf Pa\n" , pressure);
 
     #pragma omp parallel shared(walls) num_threads(7)
     {
@@ -385,7 +382,7 @@ int main(){
             unsigned seed = chrono::system_clock::now().time_since_epoch().count();
             seed*=i;
             default_random_engine rnd_gen(seed);
-            RunParticleGroup(walls, mfp, rnd_gen, group_len);
+            RunParticleGroup(walls, pressure, rnd_gen, group_len);
         }
     }
 
