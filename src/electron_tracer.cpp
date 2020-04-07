@@ -9,18 +9,15 @@
 #include <chrono>
 #include <random>
 #include <cmath>
+#include <future>
+#include <omp.h>
+
+//#include <thread>
+
+
 using namespace std;
 
 
-
-PtStatistics::PtStatistics(){
-    p.x = 0.005;
-    p.y = 1e-12;
-    p.z = 2e3;
-    V.assign({0.0, 1.0, 2.0});
-    vol_count = 5;
-    surf_count = 2;
-}
 
 PtStatistics::PtStatistics(const Point& pp, const vector<double>& pV, const int p_vol_count, const int p_surf_count){
     p = pp;
@@ -29,9 +26,12 @@ PtStatistics::PtStatistics(const Point& pp, const vector<double>& pV, const int 
     surf_count = p_surf_count;
 }
 
-void Surface::SaveInfo(PtStatistics& pt_stat, vector<Point>& pt_tragectory){
-    stat.push_back(pt_stat);
-    tragectories.push_back(pt_tragectory);
+void Surface::SaveInfo(const PtStatistics& pt_stat, const vector<Point>& pt_tragectory){
+     #pragma omp critical (saving)
+    {
+        stat.push_back(pt_stat);
+        //tragectories.push_back(pt_tragectory);
+    }
 }
 
 
@@ -129,29 +129,6 @@ Point::Point(){
 }
 
 
-Surface::Surface(){
-    PtStatistics pt_stat = PtStatistics();
-    vector<PtStatistics> tmp;
-    tmp.push_back(pt_stat);
-    stat = tmp;
-    save_stat = true;
-    vector<Point> tmp2;
-    Point pnt = Point();
-    tmp2.push_back(pnt);
-    vector<vector<Point>> tmp3;
-    tmp3.push_back(tmp2);
-    tragectories = tmp3;
-    coor_flag = 0;
-    coor_val = 1;
-    x_bnd = {1,2};
-    y_bnd = {1,2};
-    z_bnd = {1,2};
-    label = "test";
-    R = 0.5;
-}
-
-
-
 int Surface::GetCoorFlag() const {return coor_flag;}
 double Surface::GetCoorVal() const {return coor_val;}
 vector<double> Surface::GetXbnd() const {return x_bnd;}
@@ -195,9 +172,10 @@ vector<double> Particle::GetRandVel(int direction, default_random_engine& rnd_ge
 
 
 
-double Particle::GetDistanceInGas(double mfp, default_random_engine& rnd_gen) const{
+double Particle::GetDistanceInGas(const double mfp, default_random_engine& rnd_gen) const{
     uniform_real_distribution<double> rnd(0.0, 1.0);
     return mfp*log(1.0/(1.0 - rnd(rnd_gen)));
+    //return 1e5;
 }
 
 
@@ -212,7 +190,7 @@ Particle::Particle(const Surface &s, default_random_engine& rnd_gen){
     tragectory = tmp;
     //rnd =  uniform_real_distribution<double>(0.0, 1.0);
     V = this->GetRandVel(1, rnd_gen);     //directed along positive y
-    //  V = {0.0, 1.0, 0.0};
+    //V = {0.0, 1.0, 0.0};
 }
 
 Point Particle::GetCrossPoint(const Surface &s, bool& cross_flag){
@@ -351,34 +329,22 @@ void Particle::MakeGasCollision(double pt_dist, default_random_engine& rnd_gen){
 Point Particle::GetPosition() const{return p;}
 
 
-
-vector<double> get_random_number(size_t seed, int num){
-    //unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-    default_random_engine generator (seed);
-    uniform_real_distribution<double> rnd(0.0,1.0);
-    vector<double> vr;
-    for(int i=0; i<num; i++){
-        vr.push_back(rnd(generator));
-    }
-    return vr;
-}
-
-
-
-void CalculateOneParticle(vector<Surface>& walls, double mfp, default_random_engine& rnd_gen){
-    Particle pt(walls[0], rnd_gen);
-    bool alive_flag = true;
-    while (alive_flag){
-        //get_collision distance
-        double gas_dist = pt.GetDistanceInGas(mfp, rnd_gen);
-        //compare with wall distance
-        int ref_wall_idx = pt.GetReflectionSurfaceID(walls);
-        double wall_dist = pt.GetDistanceToSurface(walls[ref_wall_idx]);
-        if (wall_dist > gas_dist){
-            pt.MakeGasCollision(gas_dist, rnd_gen);
-        }
-        else{
-            alive_flag = pt.ReflectSurface(walls[ref_wall_idx]);
+void RunParticleGroup(vector<Surface>& walls, const double mfp, default_random_engine& rnd_gen, const size_t group_len){
+    for(size_t i=0; i<group_len; i++){
+        Particle pt(walls[0], rnd_gen);
+        bool alive_flag = true;
+        while (alive_flag){
+            //get_collision distance
+            double gas_dist = pt.GetDistanceInGas(mfp, rnd_gen);
+            //compare with wall distance
+            int ref_wall_idx = pt.GetReflectionSurfaceID(walls);
+            double wall_dist = pt.GetDistanceToSurface(walls[ref_wall_idx]);
+            if (wall_dist > gas_dist){
+                pt.MakeGasCollision(gas_dist, rnd_gen);
+            }
+            else{
+                alive_flag = pt.ReflectSurface(walls[ref_wall_idx]);
+            }
         }
     }
 }
@@ -408,12 +374,19 @@ int main(){
     double T = 300;         //K
     double k = 1.38e-23;     //J/K
     double N = p/(k*T)*1e-6;    //cm^-3
-    double mfp = 1.0/(N*sigma);
-    mfp = 1e5;
+    const double mfp = 1.0/(N*sigma);
+    const size_t group_len = 70000000;
     printf("MFP = %.3lf cm\n" , mfp);
 
-    for(size_t i=0; i<10000000; i++){
-        CalculateOneParticle(walls, mfp, rnd_gen);
+    #pragma omp parallel shared(walls) num_threads(7)
+    {
+        #pragma omp for
+        for(size_t i=1; i<8; i++){
+            unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+            seed*=i;
+            default_random_engine rnd_gen(seed);
+            RunParticleGroup(walls, mfp, rnd_gen, group_len);
+        }
     }
 
 

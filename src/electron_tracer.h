@@ -15,7 +15,6 @@ double z;
 
 struct PtStatistics
 {
-PtStatistics();
 PtStatistics(const Point& pp, const vector<double>& pV, const int p_vol_count, const int p_surf_count);
 Point p;
 vector<double> V;  //velocity, v[0] - vx, v[1] = vy, v[2] = vz
@@ -25,9 +24,8 @@ int surf_count;
 
 class Surface{
 public:
-    Surface();
     Surface(string& line);
-    void SaveInfo(PtStatistics& pt_stat, vector<Point>& pt_tragectory);
+    void SaveInfo(const PtStatistics& pt_stat, const vector<Point>& pt_tragectory);
     void WriteInfo();
     Point GetRandomPoint(default_random_engine& rnd_gen) const;
     void PrintSurface();
@@ -62,7 +60,7 @@ public:
     bool ReflectSurface(Surface& s);
     void MakeGasCollision(double pt_dist, default_random_engine& rnd_gen);
     Point GetPosition() const;
-    double GetDistanceInGas(double mfp, default_random_engine& rnd_gen) const;
+    double GetDistanceInGas(const double mfp, default_random_engine& rnd_gen) const;
     vector<double>GetRandVel(int direction, default_random_engine& rnd_gen) const;
 private:
     Point p;
@@ -76,5 +74,5 @@ private:
 
 
 
-void CalculateOneParticle(vector<Surface>& walls, double mfp, default_random_engine& rnd_gen);
+void RunParticleGroup(vector<Surface>& walls, const double mfp, default_random_engine& rnd_gen, const size_t group_len);
 vector<double> get_random_number(size_t seed, int num);

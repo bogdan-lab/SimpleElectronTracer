@@ -11,7 +11,7 @@ set (CMAKE_CXX_STANDARD 17)
 #set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
 
 #set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}     -g -Wall  -Wextra -pedantic -Wno-sign-compare" )
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}   -g -Wall  -Wextra -pedantic -Wno-sign-compare" )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}   -g -O3 -Wall  -Wextra -pedantic -Wno-sign-compare -fopenmp" )
 
 #OPTION(SANITAIZE   "USE GCC sanitaizers" OFF)
 #OPTION(VTUNE_BUILD "BUILD FOR VTUNE PROFILING" OFF)
@@ -62,5 +62,5 @@ add_executable( electron_tracer
 )
 
 #target_link_libraries(gmsh_reader /home/bogdan/gmsh_sdk/lib64/libgmsh.so)
-
+target_link_libraries(electron_tracer pthread)
 install(TARGETS electron_tracer  RUNTIME DESTINATION ${ElectronTracer_SOURCE_DIR}/bin)
