@@ -26,7 +26,7 @@ class Surface{
 public:
     Surface(string& line);
     void SaveInfo(const PtStatistics& pt_stat, const vector<Point>& pt_tragectory);
-    void WriteInfo();
+    void WriteInfo(const size_t number_of_simulated_particles, const double pressure);
     Point GetRandomPoint(default_random_engine& rnd_gen) const;
     void PrintSurface();
 

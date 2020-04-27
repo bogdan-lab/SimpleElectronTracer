@@ -35,11 +35,14 @@ void Surface::SaveInfo(const PtStatistics& pt_stat, const vector<Point>& pt_trag
 }
 
 
-void Surface::WriteInfo(){
+void Surface::WriteInfo(const size_t number_of_simulated_particles, const double pressure){
     string name = label + "_stat.txt";
     const char* st_file_name = name.c_str();
     FILE* st_f;
     st_f = fopen(st_file_name, "a");
+    fprintf(st_f, "#Number of particles simulated in this run %lu\n", number_of_simulated_particles);
+    fprintf(st_f, "#Surface reflection coefficient %lf\n", this->R);
+    fprintf(st_f, "#Pressure in simulateion %lf Pa\n", pressure);
     fprintf(st_f, "#x\ty\tz\tVx\tVy\tVz\tvolume count\tsurface_count\n");
     for(size_t i=0; i<stat.size(); i++){
         fprintf(st_f, "%.8e\t%.8e\t%.8e\t%.8e\t%.8e\t%.8e\t%i\t%i\n",
@@ -373,12 +376,13 @@ int main(){
     f.close();
     const double pressure = 0.0;   //Pa
     const size_t group_len = 70000000;
+    const size_t simulated_group_number = 7;
     printf("Pressure = %.3lf Pa\n" , pressure);
 
     #pragma omp parallel shared(walls) num_threads(7)
     {
         #pragma omp for
-        for(size_t i=1; i<8; i++){
+        for(size_t i=1; i<simulated_group_number+1; i++){
             unsigned seed = chrono::system_clock::now().time_since_epoch().count();
             seed*=i;
             default_random_engine rnd_gen(seed);
@@ -386,10 +390,10 @@ int main(){
         }
     }
 
-
+    size_t simulated_particle_number = group_len*simulated_group_number;
     for(size_t i=0; i<walls.size(); i++){
         if (walls[i].GetSaveStatFlag()){
-            walls[i].WriteInfo();
+            walls[i].WriteInfo(simulated_particle_number, pressure);
         }
     }
     return 0;
