@@ -57,7 +57,7 @@ public:
     Point GetCrossPoint(const Surface& s, bool& cross_flag);
     double GetDistanceToSurface(const Surface& s);
     int GetReflectionSurfaceID(const vector<Surface>& walls);
-    bool ReflectSurface(Surface& s);
+    bool ReflectSurface(Surface& s, default_random_engine& rnd_gen);
     void MakeGasCollision(double pt_dist, default_random_engine& rnd_gen);
     Point GetPosition() const;
     double GetDistanceInGas(const double pressure, default_random_engine& rnd_gen) const;

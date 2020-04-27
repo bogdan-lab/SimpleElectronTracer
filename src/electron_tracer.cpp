@@ -142,7 +142,8 @@ bool Surface::GetSaveStatFlag(){return save_stat;}
 
 
 vector<double> Particle::GetRandVel(int direction, default_random_engine& rnd_gen) const {
-    /*0 - for x, 1 - for y, 2 - for z, 3 - for 3D*/
+    /*0 - for x, 1 - for y, 2 - for z --> all for positive directions!
+     * 3 - for 3D*/
     vector<double> v(3, 0.0);
     uniform_real_distribution<double> rnd(0.0, 1.0);
     double phi = rnd(rnd_gen)*2*M_PI;
@@ -291,7 +292,7 @@ int Particle::GetReflectionSurfaceID(const vector<Surface>& walls){
 }
 
 
-bool Particle::ReflectSurface(Surface &s){
+bool Particle::ReflectSurface(Surface &s, default_random_engine& rnd_gen){
     /*returns true/false for alive/dead particle*/
     bool cross_flag;
     Point p_new = this->GetCrossPoint(s, cross_flag);
@@ -302,10 +303,8 @@ bool Particle::ReflectSurface(Surface &s){
         exit(1);
     }
     tragectory.push_back(p_new);
-    unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-    default_random_engine generator (seed);
     uniform_real_distribution<double> rnd(0.0,1.0);
-    double roll = rnd(generator);
+    double roll = rnd(rnd_gen);
     if (roll>s.GetRefl()){
         //kill particle
         PtStatistics pt_stat(p_new, V, vol_count, surf_count);
@@ -317,7 +316,14 @@ bool Particle::ReflectSurface(Surface &s){
     else{
         //Do reflection
         int coor_flag = s.GetCoorFlag();
-        V[coor_flag]*=-1;
+        //GO reflection
+        //V[coor_flag]*=-1;
+        //Diffusive reflection
+        vector<double> Vnew = this->GetRandVel(coor_flag, rnd_gen); //gives obly positive directions ->change if not
+        if (V[coor_flag]*Vnew[coor_flag]>0){ //direction did not change -> need to change
+            Vnew[coor_flag]*=-1;
+        }
+        V = Vnew;
         surf_count++;
         p = p_new;
         return true;
@@ -353,7 +359,7 @@ void RunParticleGroup(vector<Surface>& walls, const double pressure, default_ran
                 pt.MakeGasCollision(gas_dist, rnd_gen);
             }
             else{
-                alive_flag = pt.ReflectSurface(walls[ref_wall_idx]);
+                alive_flag = pt.ReflectSurface(walls[ref_wall_idx], rnd_gen);
             }
         }
     }
@@ -374,7 +380,7 @@ int main(){
         walls.push_back(s);
     }
     f.close();
-    const double pressure = 0.0;   //Pa
+    const double pressure = 5.0;   //Pa
     const size_t group_len = 70000000;
     const size_t simulated_group_number = 7;
     printf("Pressure = %.3lf Pa\n" , pressure);
