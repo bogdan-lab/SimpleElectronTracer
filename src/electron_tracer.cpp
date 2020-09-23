@@ -19,7 +19,8 @@ using namespace std;
 
 
 
-PtStatistics::PtStatistics(const Point& pp, const vector<double>& pV, const int p_vol_count, const int p_surf_count){
+PtStatistics::PtStatistics(const Point& pp, const vector<double>& pV,
+                           const int p_vol_count, const int p_surf_count){
     p = pp;
     V = pV;
     vol_count = p_vol_count;
@@ -191,74 +192,8 @@ double Particle::GetDistanceInGas(const double pressure, default_random_engine& 
 
 
 
-Particle::Particle(const Surface &s, default_random_engine& rnd_gen){
-    p = s.GetRandomPoint(rnd_gen);
-    //p = Point(50.0, 0.0, 50.0);
-    vol_count = 0;
-    surf_count = 0;
-    vector<Point> tmp;
-    tmp.push_back(p);
-    tragectory = tmp;
-    //rnd =  uniform_real_distribution<double>(0.0, 1.0);
-    V = this->GetRandVel(1, rnd_gen);     //directed along positive y
-    //V = {0.0, 1.0, 0.0};
-}
-
 Point Particle::GetCrossPoint(const Surface &s, bool& cross_flag){
-    Point p_new(0.0, 0.0, 0.0);
-    cross_flag = false;
-    int coor_flag = s.GetCoorFlag();
-    double coor_val = s.GetCoorVal();
-    vector<double> x_bnd = s.GetXbnd();
-    vector<double> y_bnd = s.GetYbnd();
-    vector<double> z_bnd = s.GetZbnd();
-    double t = 0.0;
-    if (coor_flag==0){
-        if((p.x<coor_val && V[0]>0.0) || (p.x>coor_val && V[0]<0.0)){
-            //direction is correct
-            p_new.x = coor_val;
-            t = (coor_val - p.x)/V[0];
-            p_new.y = p.y + V[1]*t;
-            p_new.z = p.z + V[2]*t;
-            if ((p_new.z>z_bnd[0] && p_new.z<z_bnd[1]) && (p_new.y>y_bnd[0] && p_new.y<y_bnd[1])){
-                cross_flag = true;
-            }
-            else {
-                cross_flag = false;
-            }
-        }
-    }
-    else if (coor_flag==1){
-        if((p.y<coor_val && V[1]>0.0) || (p.y>coor_val && V[1]<0.0)){
-            //direction is correct
-            p_new.y = coor_val;
-            t = (coor_val - p.y)/V[1];
-            p_new.x = p.x + V[0]*t;
-            p_new.z = p.z + V[2]*t;
-            if ((p_new.z>z_bnd[0] && p_new.z<z_bnd[1]) && (p_new.x>x_bnd[0] && p_new.x<x_bnd[1])){
-                cross_flag = true;
-            }
-            else {
-                cross_flag = false;
-            }
-        }
-    }
-    else{
-        if((p.z<coor_val && V[2]>0.0) || (p.z>coor_val && V[2]<0.0)){
-            //direction is correct
-            p_new.z = coor_val;
-            t = (coor_val - p.z)/V[2];
-            p_new.y = p.y + V[1]*t;
-            p_new.x = p.x + V[0]*t;
-            if ((p_new.x>x_bnd[0] && p_new.x<x_bnd[1]) && (p_new.y>y_bnd[0] && p_new.y<y_bnd[1])){
-                cross_flag = true;
-            }
-            else {
-                cross_flag = false;
-            }
-        }
-    }
-    return p_new;
+
 }
 
 
