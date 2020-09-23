@@ -4,18 +4,7 @@
 #include <iostream>
 #include <vector>
 
-struct Point{
-    double x_;
-    double y_;
-    double z_;
-};
-
-struct Velocity{
-    double vx_;
-    double vy_;
-    double vz_;
-};
-
+//Just for now Don want to think about bended planes....
 enum Direction{
     POSITIVE_X,
     POSITIVE_Y,
@@ -25,23 +14,29 @@ enum Direction{
     NEGATIVE_Z
 };
 
-std::vector<double> GetDirectionVector(const Direction dir){
-    switch (dir) {
-    case Direction::POSITIVE_X:
-        return {1.0, 0.0, 0.0};
-    case Direction::POSITIVE_Y:
-        return {0.0, 1.0, 0.0};
-    case Direction::POSITIVE_Z:
-        return {0.0, 0.0, 1.0};
-    case Direction::NEGATIVE_X:
-        return {-1.0, 0.0, 0.0};
-    case Direction::NEGATIVE_Y:
-        return {0.0, -1.0, 0.0};
-    case Direction::NEGATIVE_Z:
-        return {0.0, 0.0, -1.0};
-    }
-    stderr << "Setting for the given direcion is not added!\n";
-    exit(1);
-}
+
+class Vector{
+private:
+    double x_;
+    double y_;
+    double z_;
+public:
+    Vector(const double x, const double y, const double z):
+        x_(x), y_(y), z_(z) {}
+    Vector(const Direction dir);
+    Vector(const Vector& start_point, const Vector& end_point);
+
+    double GetX() const;
+    double GetY() const;
+    double GetZ() const;
+
+    Vector Dot(const Vector& rhs) const;
+    Vector Cross(const Vector& rhs) const;
+
+};
+
+Vector operator+(const Vector& lhs, const Vector& rhs);
+Vector operator-(const Vector& lhs, const Vector& rhs);
+
 
 #endif //UTILS_HEADER

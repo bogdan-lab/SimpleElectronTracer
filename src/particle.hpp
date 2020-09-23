@@ -10,14 +10,16 @@
 
 class Particle{
 private:
-    Point pos_;
-    Velocity V_;
+    Vector pos_;
+    Vector V_;
     size_t vol_count_; 	//number of volume collisions happened
     size_t surf_count_;	//number of surface collisions happened
 public:
     Particle(const Surface& s, default_random_engine& rnd_gen);
-    Particle(const Point& given_p, const Velocity& given_v);
-    std::pair<bool, Point> GetCrossPoint(const Surface& s) const;
+    Particle(const Vector& given_p, const Vector& given_v);
+    std::pair<bool, Vector> GetCrossPoint(const Surface& s) const;
+
+
 
     double GetDistanceToSurface(const Surface& s);
     int GetReflectionSurfaceID(const std::vector<Surface>& walls);

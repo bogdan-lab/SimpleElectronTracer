@@ -19,11 +19,35 @@ Particle::Particle(const Surface &s, default_random_engine &rnd_gen){
 }
 
 
-Particle::Particle(const Point& given_p, const Velocity& given_v){
+Particle::Particle(const Vector& given_p, const Vector& given_v){
     pos_ = given_p;
     V_ = given_v;
     vol_count_ = 0;
     surf_count_ = 0;
+}
+
+std::pair<bool, Vector> Particle::GetCrossPoint(const Surface& s) const {
+    Surface::SurfaceCoeficients Sc = s.GetSurfaceCoefficients();
+    //Look at time neede to reach the surface
+    double t = -1*(Sc.A_*pos_.GetX() + Sc.B_*pos_.GetY()
+                                                 + Sc.C_*pos_.GetZ() + Sc.D_)
+                        /(Sc.A_*V_.GetX() + Sc.B_*V_.GetY() + Sc.C_*V_.GetZ());
+    if(t<0){
+        return std::make_pair(false, Vector(0.0, 0.0, 0.0));
+    }
+    //Here at least direction is correct --> check for boundaries
+    Vector cross_point = {pos_.GetX() + V_.GetX()*t,
+                          pos_.GetY() + V_.GetY()*t,
+                          pos_.GetZ() + V_.GetZ()*t};
+    //Building ray from cross point on the current plain
+    const std::vector<Vector>& surface_contour =s.GetContour();
+    Vector ray_direction = Vector(cross_point, surface_contour[0]) +
+                            Vector(cross_point, surface_contour[1]);
+    size_t contour_cross_count = 0;
+    for(size_t i=0; i<surface_contour.size()-1; i++){
+        //TODO FIND CROSSECTIONS WITH CONTOUR LINES
+    }
+
 }
 
 
