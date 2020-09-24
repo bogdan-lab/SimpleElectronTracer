@@ -1,4 +1,4 @@
-
+#include <cmath>
 #include "utils.hpp"
 
 
@@ -50,6 +50,18 @@ Vector Vector::Cross(const Vector& rhs) const{
                   x_*rhs.GetY() - y_*rhs.GetX());
 }
 
+
+
+double Vector::Length2(){return x_*x_ + y_*y_ + z_*z_;}
+double Vector::Length(){return sqrt(Length2());}
+
+Vector Vector::Norm() const {
+    double l = Length();
+    return Vector(x_/l, y_/l, z_/l);
+}
+
+Vector Vector::Times(const double n) const{return Vector(n*x_, n*y_, n*z_);}
+
 Vector operator+(const Vector& lhs, const Vector& rhs){
     return Vector(lhs.GetX() + rhs.GetX(),
                   lhs.GetY() + rhs.GetY(),
@@ -61,4 +73,14 @@ Vector operator-(const Vector& lhs, const Vector& rhs){
                   lhs.GetY() - rhs.GetY(),
                   lhs.GetZ() - rhs.GetZ());
 }
+
+
+
+std::ostream& operator<<(std::ostream& out, const Vector& vec){
+    out << vec.GetX() << "\t" << vec.GetY() << "\t" << vec.GetZ();
+    return out;
+}
+
+
+
 

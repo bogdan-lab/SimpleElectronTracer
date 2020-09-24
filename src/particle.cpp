@@ -9,22 +9,19 @@
 
 
 
-Particle::Particle(const Surface &s, default_random_engine &rnd_gen){
-    pos_ = s.GetRandomPoint(rnd_gen);
-    vol_count = 0;
-    surf_count = 0;
-    //rnd =  uniform_real_distribution<double>(0.0, 1.0);
-    //V_ = this->GetRandVel(1, rnd_gen);     //directed along positive y
-    V_ = {0.0, 1.0, 0.0}; //TODO decide about velocity generation!
-}
-
-
 Particle::Particle(const Vector& given_p, const Vector& given_v){
     pos_ = given_p;
     V_ = given_v;
     vol_count_ = 0;
     surf_count_ = 0;
 }
+
+const Vector& Particle::GetPosition() const{return pos_;}
+const Vector& Particle::GetDirection() const {return V_;}
+size_t Particle::GetVolCount() const {return vol_count_;}
+size_t Particle::GetSurfCount() const {return surf_count_;}
+
+
 
 std::pair<bool, Vector> Particle::GetCrossPoint(const Surface& s) const {
     Surface::SurfaceCoeficients Sc = s.GetSurfaceCoefficients();
@@ -47,63 +44,75 @@ std::pair<bool, Vector> Particle::GetCrossPoint(const Surface& s) const {
     for(size_t i=0; i<surface_contour.size()-1; i++){
         //TODO FIND CROSSECTIONS WITH CONTOUR LINES
     }
+    return std::make_pair(false, cross_point);
+}
 
+std::pair<bool, double> Particle::GetDistanceToSurface(const Surface &s) const {
+    auto cross_result = GetCrossPoint(s);
+    if (cross_result.first){
+        return std::make_pair(true, Vector(pos_, cross_result.second).Length());
+    }
+    return std::make_pair(false, -1.0);
 }
 
 
-std::pair<bool, Point> Particle::GetCrossPoint(const Surface& s) const {
-    Point p_new(0.0, 0.0, 0.0);
-    cross_flag = false;
-    int coor_flag = s.GetCoorFlag();
-    double coor_val = s.GetCoorVal();
-    vector<double> x_bnd = s.GetXbnd();
-    vector<double> y_bnd = s.GetYbnd();
-    vector<double> z_bnd = s.GetZbnd();
-    double t = 0.0;
-    if (coor_flag==0){
-        if((p.x<coor_val && V[0]>0.0) || (p.x>coor_val && V[0]<0.0)){
-            //direction is correct
-            p_new.x = coor_val;
-            t = (coor_val - p.x)/V[0];
-            p_new.y = p.y + V[1]*t;
-            p_new.z = p.z + V[2]*t;
-            if ((p_new.z>z_bnd[0] && p_new.z<z_bnd[1]) && (p_new.y>y_bnd[0] && p_new.y<y_bnd[1])){
-                cross_flag = true;
-            }
-            else {
-                cross_flag = false;
-            }
-        }
+double Particle::GetDistanceInGas(const Background& gas,
+                                  default_random_engine& rnd_gen) const{
+    if (gas.p_ == 0.0){
+        return -1.0;
     }
-    else if (coor_flag==1){
-        if((p.y<coor_val && V[1]>0.0) || (p.y>coor_val && V[1]<0.0)){
-            //direction is correct
-            p_new.y = coor_val;
-            t = (coor_val - p.y)/V[1];
-            p_new.x = p.x + V[0]*t;
-            p_new.z = p.z + V[2]*t;
-            if ((p_new.z>z_bnd[0] && p_new.z<z_bnd[1]) && (p_new.x>x_bnd[0] && p_new.x<x_bnd[1])){
-                cross_flag = true;
-            }
-            else {
-                cross_flag = false;
-            }
-        }
-    }
-    else{
-        if((p.z<coor_val && V[2]>0.0) || (p.z>coor_val && V[2]<0.0)){
-            //direction is correct
-            p_new.z = coor_val;
-            t = (coor_val - p.z)/V[2];
-            p_new.y = p.y + V[1]*t;
-            p_new.x = p.x + V[0]*t;
-            if ((p_new.x>x_bnd[0] && p_new.x<x_bnd[1]) && (p_new.y>y_bnd[0] && p_new.y<y_bnd[1])){
-                cross_flag = true;
-            }
-            else {
-                cross_flag = false;
-            }
-        }
-    }
-    return p_new;
+    double mfp = 1.38e-17*gas.T_/(gas.p_*gas.sigma_);
+    uniform_real_distribution<double> rnd(0.0, 1.0);
+    return mfp*log(1.0/(1.0-rnd(rnd_gen)));
 }
+
+
+void Particle::MakeGasCollision(const double distance,
+                                default_random_engine& rnd_gen){
+    pos_ += distance*V_;
+    vol_count_++;
+    uniform_real_distribution<double> rnd(0.0, 1.0);
+    double costheta = 2*rnd(rnd_gen)-1;
+    double sintheta = sqrt(1-costheta*costheta);
+    double phi = rnd(rdn_gen)*2*M_PI;
+    V_ = Vector(sintheta*sin(phi),
+                sintheta*cos(phi),
+                costheta);
+}
+
+Vector Particle::GetRandomVel(const Vector &direction,
+                              default_random_engine &rnd_gen){
+    //TODO generate random velocity in hemisphere according to the given direction
+    return false;
+}
+
+
+bool Particle::MakeStep(const std::vector<Surface>& walls,
+                        const Background& gas, default_random_engine &rnd_gen){
+    double min_dist = GetDistanceInGas(gas, rnd_gen);
+    size_t wall_id = 0;
+    Vector point_on_surf(0.0, 0.0, 0.0);
+    bool colide_in_gas_flag = true;
+    for(size_t i=0; i<walls.size(); i++){
+        auto cross_res = GetCrossPoint(walls[i]);
+        if(cross_res.first && GetDistance(pos_, cross_res.second)<min_dist){
+            min_dist = GetDistance(pos_, cross_res.second);
+            wall_id = i;
+            colide_in_gas_flag = false;
+            point_on_surf = cross_res.second;
+        }
+    }
+    if(!colide_in_gas_flag){
+        MakeGasCollision(min_dist, rnd_gen);
+        return true;
+    }
+    //Here we collide with surface --> can die
+    pos_ = point_on_surf;
+    surf_count_++;
+    //TODO change velocity if i live or die
+}
+
+
+
+
+

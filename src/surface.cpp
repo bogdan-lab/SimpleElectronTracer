@@ -2,6 +2,7 @@
 #include <utility>
 #include <vector>
 #include <iostream>
+#include <list>
 
 #include "surface.hpp"
 
@@ -16,6 +17,7 @@ Surface::Surface(std::string g_name, std::vector<Vector> g_contour,
         exit(1);
     }
     coefs_ = Surface::CalcSurfaceCoefficients(contour_);
+    //TODO add calculation of the normal to the surface
 }
 
 const Surface::SurfaceCoeficients& Surface::CalcSurfaceCoefficients(
@@ -31,3 +33,15 @@ const Surface::SurfaceCoeficients& Surface::CalcSurfaceCoefficients(
 }
 
 const std::vector<Vector>& Surface::GetContour() const{return contour_;}
+bool Surface::IsSaveStat() const{ return save_stat_;}
+
+
+void Surface::SaveParticle(const Particle& pt){stat_.push_back(pt);}
+
+
+void Surface::SaveSurfaceParticles(std::ofstream& out) const{
+    for(const auto el : stat_){
+        out << el.GetPosition() << "\t" << el.GetDirection()
+            <<"\t" << el.GetVolCount() << "\t" << el.GetSurfCount() << "\n";
+    }
+}
