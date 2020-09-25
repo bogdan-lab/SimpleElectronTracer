@@ -5,32 +5,6 @@
 #include "utils.hpp"
 #include "surface.hpp"
 
-Vector::Vector(const Direction dir){
-    switch (dir) {
-    case Direction::POSITIVE_X:
-        x_ = 1.0, y_ = 0.0, z_ = 0.0;
-        break;
-    case Direction::POSITIVE_Y:
-        x_ = 0.0, y_ = 1.0, z_ = 0.0;
-        break;
-    case Direction::POSITIVE_Z:
-        x_ = 0.0, y_ = 0.0, z_ = 1.0;
-        break;
-    case Direction::NEGATIVE_X:
-        x_ = -1.0, y_ = 0.0, z_ = 0.0;
-        break;
-    case Direction::NEGATIVE_Y:
-        x_ = 0.0, y_ = -1.0, z_ = 0.0;
-        break;
-    case Direction::NEGATIVE_Z:
-        x_ = 0.0, y_ = 0.0, z_ = -1.0;
-        break;
-    default:
-        stderr << "Setting for the given direcion is not added!\n";
-        exit(1);
-    }
-}
-
 double Vector::GetX() const {return x_;}
 double Vector::GetY() const {return y_;}
 double Vector::GetZ() const {return z_;}

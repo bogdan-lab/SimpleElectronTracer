@@ -16,6 +16,14 @@ Particle::Particle(const Vector& given_p, const Vector& given_v){
     surf_count_ = 0;
 }
 
+Particle::Particle(const Vector &given_p, const Vector& direction,
+                   std::mt19937& rnd_gen){
+    pos_ = given_p;
+    V_ = GetRandomVel(direction, rnd_gen);
+    vol_count_ = 0;
+    surf_count_ = 0;
+}
+
 const Vector& Particle::GetPosition() const{return pos_;}
 const Vector& Particle::GetDirection() const {return V_;}
 size_t Particle::GetVolCount() const {return vol_count_;}
@@ -126,6 +134,10 @@ bool Particle::MakeStep(const std::vector<Surface>& walls,
     if(surf_refl.first){
         V_ = surf_refl.second;
         return true;
+    }
+    //Here particle is dead --> save its position
+    if (walls[wall_id].IsSaveStat()){
+        walls[wall_id].SaveParticle(*this);
     }
     return false;
 }

@@ -10,16 +10,6 @@ struct Background{
     double p_; 	 	//pressure Pa
 };
 
-//Just for now Don want to think about bended planes....
-enum Direction{
-    POSITIVE_X,
-    POSITIVE_Y,
-    POSITIVE_Z,
-    NEGATIVE_X,
-    NEGATIVE_Y,
-    NEGATIVE_Z
-};
-
 
 class Vector{
 private:
@@ -29,7 +19,6 @@ private:
 public:
     Vector(const double x, const double y, const double z):
         x_(x), y_(y), z_(z) {}
-    Vector(const Direction dir);
     Vector(const Vector& start_point, const Vector& end_point);
 
     double GetX() const;

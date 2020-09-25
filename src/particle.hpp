@@ -16,6 +16,8 @@ private:
     size_t surf_count_;	//number of surface collisions happened
 public:
     Particle(const Vector& given_p, const Vector& given_v);
+    Particle(const Vector& given_p, const Vector& direction,
+                                                     std::mt19937& rnd_gen);
     std::pair<bool, Vector> GetCrossPoint(const Surface& s) const;
     std::pair<bool, double> GetDistanceToSurface(const Surface& s) const;
     double GetDistanceInGas(const Background& gas,

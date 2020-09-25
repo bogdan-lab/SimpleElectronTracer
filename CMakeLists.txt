@@ -9,7 +9,7 @@ set (CMAKE_VERBOSE_MAKEFILE ON)
 set (CMAKE_CXX_STANDARD 17)
 
 add_executable( electron_tracer
-    src/electron_tracer.cpp
+    src/main.cpp
     src/reflector.cpp
     src/particle.cpp
     src/surface.cpp

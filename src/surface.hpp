@@ -55,6 +55,7 @@ public:
     const Vector& GetNormal() const;
     bool IsSaveStat() const;
     const Reflector* GetReflector() const ;
+    const std::string& GetName() const ;
 };
 
 
