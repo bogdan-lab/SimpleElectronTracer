@@ -1,12 +1,14 @@
-#ifndef REFLECTOR_HEADER
-#define REFLECTOR_HEADE
+#ifndef REFLECTOR_HPP
+#define REFLECTOR_HPP
 
 #include <random>
 
 #include "particle.hpp"
 #include "surface.hpp"
+#include "utils.hpp"
 
 class Surface;
+class Particle;
 
 class Reflector{
 public:
@@ -32,7 +34,7 @@ public:
     LambertianReflector(const double val): reflection_coefficient_(val) {}
     std::pair<bool, Vector> ReflectParticle(const Particle &pt,
                  const Vector& normal, std::mt19937& rnd_gen) const override;
-}
+};
 
 
 #endif //REFLECTOR_HEADER

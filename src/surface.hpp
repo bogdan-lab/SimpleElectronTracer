@@ -1,5 +1,5 @@
-#ifndef SURFACE_HEADER
-#define SURFACE_HEADER
+#ifndef SURFACE_HPP
+#define SURFACE_HPP
 
 #include <string>
 #include <memory>
@@ -12,8 +12,23 @@
 #include "utils.hpp"
 
 class Reflector;
+class Particle;
 
 class Surface{
+public:
+    struct Boundary{
+        double min_;
+        double max_;
+    };
+
+    struct SurfaceCoeficients{
+        //Ax + By + Cz + D = 0
+        double A_;
+        double B_;
+        double C_;
+        double D_;
+    };
+
 private:
     std::list<Particle> stat_;
     bool save_stat_;             //flag for saving statistics
@@ -29,21 +44,9 @@ private:
 
     static Boundary GetBoundary(const std::vector<Vector>& ctr, const char axis);
     static SurfaceCoeficients CalcSurfaceCoefficients(
-                                              const std::vector<Point> contour);
+                                              const std::vector<Vector> contour);
 public:
 
-    struct Boundary{
-        double min_;
-        double max_;
-    };
-
-    struct SurfaceCoeficients{
-        //Ax + By + Cz + D = 0
-        double A_;
-        double B_;
-        double C_;
-        double D_;
-    };
 
     Surface(std::string g_name, std::vector<Vector> g_contour,
             std::unique_ptr<Reflector> g_reflector, bool save_flag);
@@ -56,6 +59,7 @@ public:
     bool IsSaveStat() const;
     const Reflector* GetReflector() const ;
     const std::string& GetName() const ;
+    const SurfaceCoeficients& GetSurfaceCoefficients() const ;
 };
 
 

@@ -16,9 +16,9 @@ double Vector::Dot(const Vector &rhs) const{
 }
 
 Vector::Vector(const Vector &start_point, const Vector &end_point){
-    return Vector(end_point.GetX() - start_point.GetX(),
-                  end_point.GetY() - start_point.GetY(),
-                  end_point.GetZ() - start_point.GetZ());
+    x_ = end_point.GetX() - start_point.GetX();
+    y_ = end_point.GetY() - start_point.GetY();
+    z_ = end_point.GetZ() - start_point.GetZ();
 }
 
 Vector Vector::Cross(const Vector& rhs) const{
@@ -29,8 +29,8 @@ Vector Vector::Cross(const Vector& rhs) const{
 
 
 
-double Vector::Length2(){return x_*x_ + y_*y_ + z_*z_;}
-double Vector::Length(){return sqrt(Length2());}
+double Vector::Length2() const {return x_*x_ + y_*y_ + z_*z_;}
+double Vector::Length() const {return sqrt(Length2());}
 
 Vector Vector::Norm() const {
     double l = Length();
@@ -57,4 +57,6 @@ std::ostream& operator<<(std::ostream& out, const Vector& vec){
     return out;
 }
 
-
+double GetDistance(const Vector& start, const Vector& end){
+    return Vector(start, end).Length();
+}

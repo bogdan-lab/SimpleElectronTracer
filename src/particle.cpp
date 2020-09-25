@@ -2,8 +2,6 @@
 #include <random>
 #include <utility>
 
-#include "utils.hpp"
-#include "surface.hpp"
 #include "particle.hpp"
 
 
@@ -32,7 +30,7 @@ size_t Particle::GetSurfCount() const {return surf_count_;}
 
 
 std::pair<bool, Vector> Particle::GetCrossPoint(const Surface& s) const {
-    Surface::SurfaceCoeficients Sc = s.GetSurfaceCoefficients();
+    const Surface::SurfaceCoeficients& Sc = s.GetSurfaceCoefficients();
     if((Sc.A_*V_.GetX() + Sc.B_*V_.GetY() + Sc.C_*V_.GetZ()) == 0.0){
         //particle moves parallel to the surface
         return std::make_pair(false, Vector(0.0, 0.0, 0.0));
@@ -65,21 +63,21 @@ std::pair<bool, double> Particle::GetDistanceToSurface(const Surface &s) const {
 
 
 double Particle::GetDistanceInGas(const Background& gas,
-                                  default_random_engine& rnd_gen) const{
+                                  std::mt19937& rnd_gen) const{
     if (gas.p_ == 0.0){
         return -1.0;
     }
     double mfp = 1.38e-17*gas.T_/(gas.p_*gas.sigma_);
-    uniform_real_distribution<double> rnd(0.0, 1.0);
+    std::uniform_real_distribution<double> rnd(0.0, 1.0);
     return mfp*log(1.0/(1.0-rnd(rnd_gen)));
 }
 
 
 void Particle::MakeGasCollision(const double distance,
-                                default_random_engine& rnd_gen){
-    pos_ += distance*V_;
+                                std::mt19937& rnd_gen){
+    pos_ = pos_ + V_.Times(distance);
     vol_count_++;
-    uniform_real_distribution<double> rnd(0.0, 1.0);
+    std::uniform_real_distribution<double> rnd(0.0, 1.0);
     double costheta = 2*rnd(rnd_gen)-1;
     double sintheta = sqrt(1-costheta*costheta);
     double phi = rnd(rnd_gen)*2*M_PI;
@@ -89,11 +87,12 @@ void Particle::MakeGasCollision(const double distance,
 }
 
 Vector Particle::GetRandomVel(const Vector& direction,
-                              std::mt19937& rnd_gen){
+                                  std::mt19937& rnd_gen) const{
     //TODO Think about better implementation
     std::uniform_real_distribution<double> rnd(0.0, 1.0);
     double cos_theta;
     double sin_theta;
+    double phi;
     do{
         cos_theta = 2*rnd(rnd_gen)-1;
         sin_theta = sqrt(1-cos_theta*cos_theta);
@@ -107,8 +106,8 @@ Vector Particle::GetRandomVel(const Vector& direction,
 }
 
 
-bool Particle::MakeStep(const std::vector<Surface>& walls,
-                        const Background& gas, default_random_engine &rnd_gen){
+bool Particle::MakeStep(std::vector<Surface>& walls,
+                        const Background& gas, std::mt19937 &rnd_gen){
     double min_dist = GetDistanceInGas(gas, rnd_gen);
     size_t wall_id = 0;
     Vector point_on_surf(0.0, 0.0, 0.0);

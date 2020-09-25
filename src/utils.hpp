@@ -1,5 +1,5 @@
-#ifndef UTILS_HEADER
-#define UTILS_HEADER
+#ifndef UTILS_HPP
+#define UTILS_HPP
 
 #include <iostream>
 #include <vector>
@@ -13,13 +13,15 @@ struct Background{
 
 class Vector{
 private:
-    double x_;
-    double y_;
-    double z_;
+    double x_ = 0.0;
+    double y_ = 0.0;
+    double z_ = 0.0;
 public:
     Vector(const double x, const double y, const double z):
         x_(x), y_(y), z_(z) {}
     Vector(const Vector& start_point, const Vector& end_point);
+//    Vector& operator=(const Vector& rhs) = default;
+    Vector()=default;
 
     double GetX() const;
     double GetY() const;

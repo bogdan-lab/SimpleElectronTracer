@@ -1,12 +1,14 @@
-#ifndef PARTICLE_HEADER
-#define PARTICLE_HAEDER
+#ifndef PARTICLE_HPP
+#define PARTICLE_HPP
 
 #include <vector>
 #include <random>
 #include <utility>
 
-#include "utils.hpp"
 #include "surface.hpp"
+#include "utils.hpp"
+
+class Surface;
 
 class Particle{
 private:
@@ -21,13 +23,12 @@ public:
     std::pair<bool, Vector> GetCrossPoint(const Surface& s) const;
     std::pair<bool, double> GetDistanceToSurface(const Surface& s) const;
     double GetDistanceInGas(const Background& gas,
-                            default_random_engine& rnd_gen) const;
+                            std::mt19937& rnd_gen) const;
     void MakeGasCollision(const double distance,
-                          default_random_engine& rnd_gen);
-    bool MakeStep(const std::vector<Surface>& walls, const Background& gas,
-                  default_random_engine& rnd_gen);
-    Vector GetRandomVel(const Vector& direction,
-                        default_random_engine& rnd_gen);
+                          std::mt19937& rnd_gen);
+    bool MakeStep(std::vector<Surface>& walls, const Background& gas,
+                  std::mt19937& rnd_gen);
+    Vector GetRandomVel(const Vector& direction, std::mt19937& rnd_gen) const;
 
     const Vector& GetPosition() const;
     const Vector& GetDirection() const;
