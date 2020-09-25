@@ -20,9 +20,20 @@ private:
     std::unique_ptr<Reflector> reflector_;
     SurfaceCoeficients coefs_;
     Vector normal_;
+    //TODO Redo into fully plygonal representaiotn
+    Boundary x_bnd_;
+    Boundary y_bnd_;
+    Boundary z_bnd_;
 
-    static SurfaceCoeficients CalcSurfaceCoefficients(const std::vector<Point> contour);
+    static Boundary GetBoundary(const std::vector<Vector>& ctr, const char axis);
+    static SurfaceCoeficients CalcSurfaceCoefficients(
+                                              const std::vector<Point> contour);
 public:
+
+    struct Boundary{
+        double min_;
+        double max_;
+    };
 
     struct SurfaceCoeficients{
         //Ax + By + Cz + D = 0
@@ -35,10 +46,12 @@ public:
     Surface(std::string g_name, std::vector<Vector> g_contour,
             std::unique_ptr<Reflector> g_reflector, bool save_flag);
     void SaveSurfaceParticles(std::ofstream& out) const;
+    void SaveParticle(const Particle& pt);
+    bool CheckIfPointOnSurface(const Vector& point) const;
 
     const std::vector<Vector>& GetContour() const ;
+    const Vector& GetNormal() const;
     bool IsSaveStat() const;
-    void SaveParticle(const Particle& pt);
     //TODO some function about reflection???
 };
 

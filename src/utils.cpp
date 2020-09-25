@@ -1,6 +1,9 @@
 #include <cmath>
-#include "utils.hpp"
+#include <vector>
+#include <random>
 
+#include "utils.hpp"
+#include "surface.hpp"
 
 Vector::Vector(const Direction dir){
     switch (dir) {
@@ -75,12 +78,9 @@ Vector operator-(const Vector& lhs, const Vector& rhs){
 }
 
 
-
 std::ostream& operator<<(std::ostream& out, const Vector& vec){
     out << vec.GetX() << "\t" << vec.GetY() << "\t" << vec.GetZ();
     return out;
 }
-
-
 
 
