@@ -65,7 +65,7 @@ Surface::SurfaceCoeficients Surface::CalcSurfaceCoefficients(
 const std::vector<Vector>& Surface::GetContour() const{return contour_;}
 const Vector& Surface::GetNormal() const{return normal_;}
 bool Surface::IsSaveStat() const{ return save_stat_;}
-
+const Reflector* Surface::GetReflector() const {return reflector_.get();}
 
 void Surface::SaveParticle(const Particle& pt){stat_.push_back(pt);}
 

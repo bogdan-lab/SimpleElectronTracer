@@ -37,8 +37,8 @@ double Vector::GetZ() const {return z_;}
 
 
 
-Vector Vector::Dot(const Vector &rhs) const{
-    return Vector(x_*rhs.GetX(), y_*rhs.GetY(), z_*rhs.GetZ());
+double Vector::Dot(const Vector &rhs) const{
+    return x_*rhs.GetX() + y_*rhs.GetY() + z_*rhs.GetZ();
 }
 
 Vector::Vector(const Vector &start_point, const Vector &end_point){

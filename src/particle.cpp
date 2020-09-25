@@ -34,7 +34,7 @@ std::pair<bool, Vector> Particle::GetCrossPoint(const Surface& s) const {
     double t = -1*(Sc.A_*pos_.GetX() + Sc.B_*pos_.GetY()
                                                  + Sc.C_*pos_.GetZ() + Sc.D_)
                         /(Sc.A_*V_.GetX() + Sc.B_*V_.GetY() + Sc.C_*V_.GetZ());
-    if(t<0){
+    if(t<=0){
         return std::make_pair(false, Vector(0.0, 0.0, 0.0));
     }
     //Here at least direction is correct --> check for boundaries
@@ -74,7 +74,7 @@ void Particle::MakeGasCollision(const double distance,
     uniform_real_distribution<double> rnd(0.0, 1.0);
     double costheta = 2*rnd(rnd_gen)-1;
     double sintheta = sqrt(1-costheta*costheta);
-    double phi = rnd(rdn_gen)*2*M_PI;
+    double phi = rnd(rnd_gen)*2*M_PI;
     V_ = Vector(sintheta*sin(phi),
                 sintheta*cos(phi),
                 costheta);
@@ -82,8 +82,20 @@ void Particle::MakeGasCollision(const double distance,
 
 Vector Particle::GetRandomVel(const Vector& direction,
                               std::mt19937& rnd_gen){
-    //TODO generate random velocity in hemisphere according to the given direction
-    return false;
+    //TODO Think about better implementation
+    std::uniform_real_distribution<double> rnd(0.0, 1.0);
+    double cos_theta;
+    double sin_theta;
+    do{
+        cos_theta = 2*rnd(rnd_gen)-1;
+        sin_theta = sqrt(1-cos_theta*cos_theta);
+        phi = rnd(rnd_gen)*2*M_PI;
+    }while (direction.Dot(Vector(sin_theta*sin(phi),
+                                 sin_theta*cos(phi),
+                                 cos_theta))<=0);
+    return Vector(sin_theta*sin(phi),
+                  sin_theta*cos(phi),
+                  cos_theta);
 }
 
 
@@ -109,7 +121,13 @@ bool Particle::MakeStep(const std::vector<Surface>& walls,
     //Here we collide with surface --> can die
     pos_ = point_on_surf;
     surf_count_++;
-    //TODO change velocity if i live or die
+    auto surf_refl = walls[wall_id].GetReflector()->ReflectParticle(*this,
+                                           walls[wall_id].GetNormal(), rnd_gen);
+    if(surf_refl.first){
+        V_ = surf_refl.second;
+        return true;
+    }
+    return false;
 }
 
 

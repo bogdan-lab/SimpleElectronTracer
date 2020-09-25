@@ -36,7 +36,7 @@ public:
     double GetY() const;
     double GetZ() const;
 
-    Vector Dot(const Vector& rhs) const;
+    double Dot(const Vector& rhs) const;
     Vector Cross(const Vector& rhs) const;
     double Length2() const;
     double Length() const;

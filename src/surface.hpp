@@ -11,6 +11,8 @@
 #include "reflector.hpp"
 #include "utils.hpp"
 
+class Reflector;
+
 class Surface{
 private:
     std::list<Particle> stat_;
@@ -52,7 +54,7 @@ public:
     const std::vector<Vector>& GetContour() const ;
     const Vector& GetNormal() const;
     bool IsSaveStat() const;
-    //TODO some function about reflection???
+    const Reflector* GetReflector() const ;
 };
 
 

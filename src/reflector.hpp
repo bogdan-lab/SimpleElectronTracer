@@ -6,18 +6,23 @@
 #include "particle.hpp"
 #include "surface.hpp"
 
+class Surface;
+
 class Reflector{
 public:
-    virtual bool ReflectParticle(Particle& pt, Surface& s, default_random_engine& rnd_gen) const = 0;
+    //TODO Make it return second optional for the case when particle dies!
+    virtual std::pair<bool, Vector> ReflectParticle(const Particle& pt,
+                           const Vector& normal, std::mt19937& rnd_gen) const = 0;
     virtual ~Reflector() = default;
 };
 
-class UniformReflector : public Reflector {
+class MirrorReflector : public Reflector {
 private:
     double reflection_coefficient_;
 public:
-    UniformReflector(const double val): reflection_coefficient_(val) {}
-    bool ReflectParticle(Particle &pt, Surface &s, default_random_engine &rnd_gen) const override;
+    MirrorReflector(const double val): reflection_coefficient_(val) {}
+    std::pair<bool, Vector> ReflectParticle(const Particle &pt,
+                  const Vector& normal, std::mt19937& rnd_gen) const override;
 };
 
 class LambertianReflector : public Reflector {
@@ -25,7 +30,8 @@ private:
     double reflection_coefficient_;
 public:
     LambertianReflector(const double val): reflection_coefficient_(val) {}
-    bool ReflectParticle(Particle &pt, Surface &s, default_random_engine &rnd_gen) const override;
+    std::pair<bool, Vector> ReflectParticle(const Particle &pt,
+                 const Vector& normal, std::mt19937& rnd_gen) const override;
 }
 
 
