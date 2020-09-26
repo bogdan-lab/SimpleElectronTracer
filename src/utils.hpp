@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 
+class Surface;
+
 struct Background{
     double sigma_; 	//crossection cm^2
     double T_; 	 	//temperature K
@@ -39,5 +41,5 @@ Vector operator+(const Vector& lhs, const Vector& rhs);
 Vector operator-(const Vector& lhs, const Vector& rhs);
 std::ostream& operator<<(std::ostream& out, const Vector& vec);
 double GetDistance(const Vector& start, const Vector& end);
-
+Vector VerifyPointOnSurface(const Surface& s, const Vector& point);
 #endif //UTILS_HEADER

@@ -60,6 +60,9 @@ public:
     const Reflector* GetReflector() const ;
     const std::string& GetName() const ;
     const SurfaceCoeficients& GetSurfaceCoefficients() const ;
+    const Boundary& GetXBnd() const ;
+    const Boundary& GetYBnd() const ;
+    const Boundary& GetZBnd() const ;
 };
 
 

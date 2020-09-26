@@ -85,7 +85,9 @@ int main(){
     rnd_gen.seed(static_cast<uint>(time(0)));
     for(size_t i=0; i<1000; i++){
         Particle pt(Vector(0.5, 0.5, 0.5), Vector(0.5, 0.5, 0.5), rnd_gen);
-        while(pt.MakeStep(walls, gas, rnd_gen)){}
+        while(pt.MakeStep(walls, gas, rnd_gen)){
+            std::cout << pt.GetPosition() << "\n";
+        }
     }
 
     for(size_t i=0; i<walls.size(); i++){

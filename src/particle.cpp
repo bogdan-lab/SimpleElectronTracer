@@ -33,7 +33,7 @@ std::pair<bool, Vector> Particle::GetCrossPoint(const Surface& s) const {
     const Surface::SurfaceCoeficients& Sc = s.GetSurfaceCoefficients();
     if((Sc.A_*V_.GetX() + Sc.B_*V_.GetY() + Sc.C_*V_.GetZ()) == 0.0){
         //particle moves parallel to the surface
-        return std::make_pair(false, Vector(0.0, 0.0, 0.0));
+        return std::make_pair(false, Vector());
         //TODO it might be better to return second argument as optional
     }
     //Look at time needed to reach the surface
@@ -41,16 +41,18 @@ std::pair<bool, Vector> Particle::GetCrossPoint(const Surface& s) const {
                                                  + Sc.C_*pos_.GetZ() + Sc.D_)
                         /(Sc.A_*V_.GetX() + Sc.B_*V_.GetY() + Sc.C_*V_.GetZ());
     if(t<=0){
-        return std::make_pair(false, Vector(0.0, 0.0, 0.0));
+        return std::make_pair(false, Vector());
     }
     //Here at least direction is correct --> check for boundaries
     Vector cross_point = {pos_.GetX() + V_.GetX()*t,
                           pos_.GetY() + V_.GetY()*t,
                           pos_.GetZ() + V_.GetZ()*t};
+    cross_point = VerifyPointOnSurface(s, cross_point);
+    //TODO think about how to overcome double precision problem adequately
     if (s.CheckIfPointOnSurface(cross_point)){
         return std::make_pair(true, cross_point);
     }
-    return std::make_pair(false, Vector(0.0, 0.0, 0.0));
+    return std::make_pair(false, Vector());
 }
 
 std::pair<bool, double> Particle::GetDistanceToSurface(const Surface &s) const {
@@ -110,7 +112,7 @@ bool Particle::MakeStep(std::vector<Surface>& walls,
                         const Background& gas, std::mt19937 &rnd_gen){
     double min_dist = GetDistanceInGas(gas, rnd_gen);
     size_t wall_id = 0;
-    Vector point_on_surf(0.0, 0.0, 0.0);
+    Vector point_on_surf;
     bool colide_in_gas_flag = true;
     for(size_t i=0; i<walls.size(); i++){
         auto cross_res = GetCrossPoint(walls[i]);
@@ -121,7 +123,7 @@ bool Particle::MakeStep(std::vector<Surface>& walls,
             point_on_surf = cross_res.second;
         }
     }
-    if(!colide_in_gas_flag){
+    if(colide_in_gas_flag){
         MakeGasCollision(min_dist, rnd_gen);
         return true;
     }

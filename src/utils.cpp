@@ -60,3 +60,21 @@ std::ostream& operator<<(std::ostream& out, const Vector& vec){
 double GetDistance(const Vector& start, const Vector& end){
     return Vector(start, end).Length();
 }
+
+Vector VerifyPointOnSurface(const Surface& s, const Vector& point){
+    //Stupid solution for now
+    if(s.GetXBnd().max_==s.GetXBnd().min_){
+        return Vector(s.GetXBnd().min_, point.GetY(), point.GetZ());
+    }
+    else if (s.GetYBnd().min_ == s.GetYBnd().max_){
+        return Vector(point.GetX(), s.GetYBnd().max_, point.GetZ());
+    }
+    else if (s.GetZBnd().min_==s.GetZBnd().max_){
+        return Vector(point.GetX(), point.GetY(), s.GetZBnd().min_);
+    }
+    else{
+        std::cerr << "Bended surfaces like " << s.GetName()
+                  << "are not supported yet!\n";
+        exit(1);
+    }
+}

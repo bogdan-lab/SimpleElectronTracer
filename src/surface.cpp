@@ -81,9 +81,15 @@ void Surface::SaveParticle(const Particle& pt){stat_.push_back(pt);}
 const Surface::SurfaceCoeficients& Surface::GetSurfaceCoefficients() const {
     return coefs_;
 }
+const Surface::Boundary& Surface::GetXBnd() const {return x_bnd_;}
+const Surface::Boundary& Surface::GetYBnd() const {return y_bnd_;}
+const Surface::Boundary& Surface::GetZBnd() const {return z_bnd_;}
+
+
 
 void Surface::SaveSurfaceParticles(std::ofstream& out) const{
-    for(const auto el : stat_){
+    out << "#POS_X\tPOS_Y\tPOS_Z\tVX\tVY\tVZ\tVolumeCount\tSurfaceCount\n";
+    for(const auto& el : stat_){
         out << el.GetPosition() << "\t" << el.GetDirection()
             <<"\t" << el.GetVolCount() << "\t" << el.GetSurfCount() << "\n";
     }
