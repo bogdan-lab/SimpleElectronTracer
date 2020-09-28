@@ -5,12 +5,8 @@ project(ElectronTracer
 
 set (CMAKE_VERBOSE_MAKEFILE ON)
 
+enable_testing()
 
-add_executable( electron_tracer
-    src/main.cpp
-    src/reflector.cpp
-    src/particle.cpp
-    src/surface.cpp
-    src/utils.cpp
-)
+add_subdirectory(src)
+add_subdirectory(tests)
 
