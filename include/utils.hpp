@@ -22,7 +22,6 @@ public:
     Vector(const double x, const double y, const double z):
         x_(x), y_(y), z_(z) {}
     Vector(const Vector& start_point, const Vector& end_point);
-//    Vector& operator=(const Vector& rhs) = default;
     Vector()=default;
 
     double GetX() const;

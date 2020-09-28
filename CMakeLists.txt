@@ -5,6 +5,8 @@ project(ElectronTracer
 
 set (CMAKE_VERBOSE_MAKEFILE ON)
 
+include_directories(include/)
+
 enable_testing()
 
 add_subdirectory(src)
