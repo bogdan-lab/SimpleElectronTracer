@@ -3,12 +3,23 @@ cmake_minimum_required(VERSION 3.1)
 project(ElectronTracer
 	LANGUAGES CXX)
 
-set (CMAKE_VERBOSE_MAKEFILE ON)
+option(BUILD_TESTS OFF)
+option(BUILD_BENCHMARKS OFF)
 
 include_directories(include/)
 
-enable_testing()
+if(BUILD_BENCHMARKS)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 
 add_subdirectory(src)
-add_subdirectory(tests)
+if(BUILD_TESTS)
+        enable_testing()
+        add_subdirectory(tests)
+endif()
+
+if(BUILD_BENCHMARKS)
+    add_subdirectory(benchmarks)
+endif()
 
