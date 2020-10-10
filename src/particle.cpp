@@ -1,4 +1,4 @@
-
+﻿#include <optional>
 #include <random>
 #include <utility>
 
@@ -29,19 +29,18 @@ size_t Particle::GetSurfCount() const {return surf_count_;}
 
 
 
-std::pair<bool, Vector> Particle::GetCrossPoint(const Surface& s) const {
+std::optional<Vector> Particle::GetCrossPoint(const Surface& s) const {
     const Surface::SurfaceCoeficients& Sc = s.GetSurfaceCoefficients();
     if((Sc.A_*V_.GetX() + Sc.B_*V_.GetY() + Sc.C_*V_.GetZ()) == 0.0){
         //particle moves parallel to the surface
-        return std::make_pair(false, Vector());
-        //TODO it might be better to return second argument as optional
+        return std::nullopt;
     }
     //Look at time needed to reach the surface
     double t = -1*(Sc.A_*pos_.GetX() + Sc.B_*pos_.GetY()
                                                  + Sc.C_*pos_.GetZ() + Sc.D_)
                         /(Sc.A_*V_.GetX() + Sc.B_*V_.GetY() + Sc.C_*V_.GetZ());
     if(t<=0){
-        return std::make_pair(false, Vector());
+        return std::nullopt;
     }
     //Here at least direction is correct --> check for boundaries
     Vector cross_point = {pos_.GetX() + V_.GetX()*t,
@@ -50,15 +49,15 @@ std::pair<bool, Vector> Particle::GetCrossPoint(const Surface& s) const {
     cross_point = VerifyPointOnSurface(s, cross_point);
     //TODO think about how to overcome double precision problem adequately
     if (s.CheckIfPointOnSurface(cross_point)){
-        return std::make_pair(true, cross_point);
+        return cross_point;
     }
-    return std::make_pair(false, Vector());
+    return std::nullopt;
 }
 
 std::pair<bool, double> Particle::GetDistanceToSurface(const Surface &s) const {
     auto cross_result = GetCrossPoint(s);
-    if (cross_result.first){
-        return std::make_pair(true, Vector(pos_, cross_result.second).Length());
+    if (cross_result){
+        return std::make_pair(true, Vector(pos_, cross_result.value()).Length());
     }
     return std::make_pair(false, -1.0);
 }
@@ -116,11 +115,11 @@ bool Particle::MakeStep(std::vector<Surface>& walls,
     bool colide_in_gas_flag = true;
     for(size_t i=0; i<walls.size(); i++){
         auto cross_res = GetCrossPoint(walls[i]);
-        if(cross_res.first && GetDistance(pos_, cross_res.second)<min_dist){
-            min_dist = GetDistance(pos_, cross_res.second);
+        if(cross_res && GetDistance(pos_, cross_res.value())<min_dist){
+            min_dist = GetDistance(pos_, cross_res.value());
             wall_id = i;
             colide_in_gas_flag = false;
-            point_on_surf = cross_res.second;
+            point_on_surf = cross_res.value();
         }
     }
     if(colide_in_gas_flag){

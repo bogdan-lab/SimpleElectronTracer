@@ -1,9 +1,10 @@
-#ifndef PARTICLE_HPP
+﻿#ifndef PARTICLE_HPP
 #define PARTICLE_HPP
 
 #include <vector>
 #include <random>
 #include <utility>
+#include <optional>
 
 #include "surface.hpp"
 #include "utils.hpp"
@@ -20,7 +21,7 @@ public:
     Particle(const Vector& given_p, const Vector& given_v);
     Particle(const Vector& given_p, const Vector& direction,
                                                      std::mt19937& rnd_gen);
-    std::pair<bool, Vector> GetCrossPoint(const Surface& s) const;
+    std::optional<Vector> GetCrossPoint(const Surface& s) const;
     std::pair<bool, double> GetDistanceToSurface(const Surface& s) const;
     double GetDistanceInGas(const Background& gas,
                             std::mt19937& rnd_gen) const;
