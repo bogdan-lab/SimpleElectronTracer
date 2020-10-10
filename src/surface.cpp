@@ -88,10 +88,12 @@ const Surface::Boundary& Surface::GetZBnd() const {return z_bnd_;}
 
 
 void Surface::SaveSurfaceParticles(std::ofstream& out) const{
-    out << "#POS_X\tPOS_Y\tPOS_Z\tVX\tVY\tVZ\tVolumeCount\tSurfaceCount\n";
-    for(const auto& el : stat_){
-        out << el.GetPosition() << "\t" << el.GetDirection()
-            <<"\t" << el.GetVolCount() << "\t" << el.GetSurfCount() << "\n";
+    if(!stat_.empty()){
+        out << "#POS_X\tPOS_Y\tPOS_Z\tVX\tVY\tVZ\tVolumeCount\tSurfaceCount\n";
+        for(const auto& el : stat_){
+            out << el.GetPosition() << "\t" << el.GetDirection()
+                <<"\t" << el.GetVolCount() << "\t" << el.GetSurfCount() << "\n";
+        }
     }
 }
 

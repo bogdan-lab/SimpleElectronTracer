@@ -1,9 +1,9 @@
 ﻿#include <optional>
 #include <random>
 #include <utility>
+#include <limits>
 
 #include "particle.hpp"
-
 
 
 
@@ -54,19 +54,10 @@ std::optional<Vector> Particle::GetCrossPoint(const Surface& s) const {
     return std::nullopt;
 }
 
-std::pair<bool, double> Particle::GetDistanceToSurface(const Surface &s) const {
-    auto cross_result = GetCrossPoint(s);
-    if (cross_result){
-        return std::make_pair(true, Vector(pos_, cross_result.value()).Length());
-    }
-    return std::make_pair(false, -1.0);
-}
-
-
 double Particle::GetDistanceInGas(const Background& gas,
                                   std::mt19937& rnd_gen) const{
     if (gas.p_ == 0.0){
-        return -1.0;
+        return std::numeric_limits<double>::max();
     }
     double mfp = 1.38e-17*gas.T_/(gas.p_*gas.sigma_);
     std::uniform_real_distribution<double> rnd(0.0, 1.0);

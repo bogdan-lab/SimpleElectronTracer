@@ -27,7 +27,7 @@ def plot_2D_distribution(data, pars, gbins, file_name):
     plt.title("FILE-> %s  ;  PAR-> %s  %s" % (file_name, pars[0], pars[1]))
     plt.xlabel("%s values" % pars[0])
     plt.ylabel("%s values" % pars[1])
-    plt.hist2d(data[:,x_idx], data[:,y_idx], bins=gbins, density=True)
+    plt.hist2d(data[:,x_idx], data[:,y_idx], bins=gbins)
     plt.colorbar()
     plt.tight_layout()
     return 0

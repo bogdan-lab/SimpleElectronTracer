@@ -1,4 +1,4 @@
-#include <time.h>
+﻿#include <time.h>
 
 #include "particle.hpp"
 #include "surface.hpp"
@@ -8,7 +8,6 @@
 
 
 int main(){
-
     //plot geometry
     std::vector<Surface> walls;
     walls.reserve(6);
@@ -20,7 +19,7 @@ int main(){
                     Vector(0.0, 1.0, 1.0),
                     Vector(0.0, 0.0, 1.0)};
         walls.push_back(Surface(name, contour,
-                                std::make_unique<MirrorReflector>(0.9), true));
+                                std::make_unique<MirrorReflector>(0.0), true));
     }
     //SURFACE 1 - XZ
     {
@@ -30,7 +29,7 @@ int main(){
                                      Vector(1.0, 0.0, 1.0),
                                      Vector(1.0, 0.0, 0.0)};
         walls.push_back(Surface(name, contour,
-                                std::make_unique<LambertianReflector>(0.9), true));
+                                std::make_unique<LambertianReflector>(0.0), true));
 
     }
     //SURFACE 2 - XY
@@ -41,7 +40,7 @@ int main(){
                                      Vector(1.0, 1.0, 0.0),
                                      Vector(0.0, 1.0, 0.0)};
         walls.push_back(Surface(name, contour,
-                                std::make_unique<LambertianReflector>(0.9), true));
+                                std::make_unique<LambertianReflector>(0.0), true));
 
     }
     //SURFACE 3 - YZ
@@ -52,7 +51,7 @@ int main(){
                                      Vector(1.0, 1.0, 1.0),
                                      Vector(1.0, 1.0, 0.0)};
         walls.push_back(Surface(name, contour,
-                                std::make_unique<MirrorReflector>(0.9), true));
+                                std::make_unique<MirrorReflector>(0.0), true));
 
     }
     //SURFACE 4 - XZ
@@ -63,7 +62,7 @@ int main(){
                                      Vector(1.0, 1.0, 1.0),
                                      Vector(0.0, 1.0, 1.0)};
         walls.push_back(Surface(name, contour,
-                                std::make_unique<LambertianReflector>(0.9), true));
+                                std::make_unique<LambertianReflector>(0.0), true));
 
     }
     //SURFACE 5 - XY
@@ -74,18 +73,23 @@ int main(){
                                      Vector(1.0, 1.0, 1.0),
                                      Vector(1.0, 0.0, 1.0)};
         walls.push_back(Surface(name, contour,
-                                std::make_unique<LambertianReflector>(0.9), true));
+                                std::make_unique<LambertianReflector>(0.0), true));
 
     }
 
     Background gas = {2e-16, 300.0, 5.0};
 
+
     //RUNNING PARTICLES
     std::mt19937 rnd_gen;
     rnd_gen.seed(static_cast<uint>(time(0)));
-    for(size_t i=0; i<1000; i++){
-        Particle pt(Vector(0.5, 0.5, 0.5), Vector(0.5, 0.5, 0.5), rnd_gen);
+    size_t pt_num = 1000000;
+    for(size_t i=0; i<pt_num; i++){
+        Particle pt(Vector(0.0, 0.5, 0.5), Vector(1.0, 0.0, 0.0));
         while(pt.MakeStep(walls, gas, rnd_gen)){}
+        if(i%100000==0){
+            printf("%.2lf%\n" , static_cast<double>(100.0*i/pt_num));
+        }
     }
 
     for(size_t i=0; i<walls.size(); i++){
