@@ -1,4 +1,4 @@
-#ifndef UTILS_HPP
+﻿#ifndef UTILS_HPP
 #define UTILS_HPP
 
 #include <iostream>
@@ -41,4 +41,7 @@ Vector operator-(const Vector& lhs, const Vector& rhs);
 std::ostream& operator<<(std::ostream& out, const Vector& vec);
 double GetDistance(const Vector& start, const Vector& end);
 Vector VerifyPointOnSurface(const Surface& s, const Vector& point);
+std::vector<Vector> GenerateONBasisByNewZ(const Vector& new_z);
+Vector ApplyCoordinateTransition(const std::vector<Vector>& new_basis,
+                                 const Vector& vec);
 #endif //UTILS_HEADER

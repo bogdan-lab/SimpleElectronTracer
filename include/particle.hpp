@@ -13,12 +13,12 @@ class Surface;
 
 class Particle{
 private:
-    Vector pos_;
-    Vector V_;
-    size_t vol_count_; 	//number of volume collisions happened
-    size_t surf_count_;	//number of surface collisions happened
+    Vector pos_ = {};
+    Vector V_ = {};
+    size_t vol_count_ = {}; 	//number of volume collisions happened
+    size_t surf_count_ = {};	//number of surface collisions happened
 public:
-
+    Particle() = default;
     Particle(const Vector& given_p, const Vector& given_v);
     Particle(const Vector& given_p, const Vector& direction,
                                                      std::mt19937& rnd_gen);

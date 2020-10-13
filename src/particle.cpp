@@ -9,7 +9,7 @@
 
 Particle::Particle(const Vector& given_p, const Vector& given_v){
     pos_ = given_p;
-    V_ = given_v;
+    V_ = given_v.Norm();
     vol_count_ = 0;
     surf_count_ = 0;
 }
@@ -80,21 +80,17 @@ void Particle::MakeGasCollision(const double distance,
 
 Vector Particle::GetRandomVel(const Vector& direction,
                                   std::mt19937& rnd_gen) const{
-    //TODO Think about better implementation
     std::uniform_real_distribution<double> rnd(0.0, 1.0);
     double cos_theta;
     double sin_theta;
     double phi;
-    do{
-        cos_theta = 2*rnd(rnd_gen)-1;
-        sin_theta = sqrt(1-cos_theta*cos_theta);
-        phi = rnd(rnd_gen)*2*M_PI;
-    }while (direction.Dot(Vector(sin_theta*sin(phi),
-                                 sin_theta*cos(phi),
-                                 cos_theta))<=0);
-    return Vector(sin_theta*sin(phi),
-                  sin_theta*cos(phi),
-                  cos_theta);
+    cos_theta = rnd(rnd_gen);
+    sin_theta = sqrt(1-cos_theta*cos_theta);
+    phi = rnd(rnd_gen)*2*M_PI;
+    std::vector<Vector> coor_transition = GenerateONBasisByNewZ(direction);
+    Vector res_vec = ApplyCoordinateTransition(coor_transition,
+                     Vector(sin_theta*sin(phi), sin_theta*cos(phi), cos_theta));
+    return res_vec;
 }
 
 

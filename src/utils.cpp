@@ -1,4 +1,4 @@
-#include <cmath>
+﻿#include <cmath>
 #include <vector>
 #include <random>
 
@@ -77,4 +77,24 @@ Vector VerifyPointOnSurface(const Surface& s, const Vector& point){
                   << "are not supported yet!\n";
         exit(1);
     }
+}
+
+std::vector<Vector> GenerateONBasisByNewZ(const Vector &new_z){
+    std::vector<Vector> basis(3);
+    basis[2] = new_z.Norm();
+    Vector tmp_cross_x = new_z.Cross(Vector(1.0, 0.0, 0.0));
+    Vector tmp_cross_y = new_z.Cross(Vector(0.0, 1.0, 0.0));
+    Vector new_y = tmp_cross_x.Length2()>tmp_cross_y.Length2() ?
+                tmp_cross_x : tmp_cross_y;
+    basis[1] = new_y.Norm();
+    basis[0] = basis[1].Cross(basis[2]);
+    return basis;
+}
+
+
+Vector ApplyCoordinateTransition(const std::vector<Vector>& new_basis,
+                                 const Vector& vec){
+    return new_basis[0].Times(vec.GetX()) +
+           new_basis[1].Times(vec.GetY()) +
+           new_basis[2].Times(vec.GetZ());
 }
