@@ -1,4 +1,5 @@
 ﻿#include <time.h>
+#include <algorithm>
 
 #include "particle.hpp"
 #include "surface.hpp"
@@ -85,24 +86,16 @@ int main(){
     rnd_gen.seed(static_cast<uint>(time(0)));
     size_t pt_num = 1000000;
     for(size_t i=0; i<pt_num; i++){
-        Particle pt(Vector(0.0, 0.5, 0.5), Vector(1.0, 0.0, 0.0));
+        Particle pt(Vector(0.1, 0.5, 0.5), Vector(1.0, 0.0, 0.0));
         while(pt.MakeStep(walls, gas, rnd_gen)){}
         if(i%100000==0){
             printf("%.2lf%\n" , static_cast<double>(100.0*i/pt_num));
         }
     }
 
-    for(size_t i=0; i<walls.size(); i++){
-        if(walls[i].IsSaveStat()){
-            std::ofstream file;
-            file.open(walls[i].GetName());
-            if(!file){
-                std::cerr << "Unable to open file\n";
-                exit(1);
-            }
-            walls[i].SaveSurfaceParticles(file);
-            file.close();
-        }
-    }
+    std::for_each(walls.cbegin(), walls.cend(), [](const Surface& s){
+        s.SaveSurfaceParticles();
+    });
+
     return 0;
 }

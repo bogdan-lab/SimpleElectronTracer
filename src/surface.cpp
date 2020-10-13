@@ -87,12 +87,27 @@ const Surface::Boundary& Surface::GetZBnd() const {return z_bnd_;}
 
 
 
-void Surface::SaveSurfaceParticles(std::ofstream& out) const{
+void Surface::SaveSurfaceParticles() const{
     if(!stat_.empty()){
-        out << "#POS_X\tPOS_Y\tPOS_Z\tVX\tVY\tVZ\tVolumeCount\tSurfaceCount\n";
-        for(const auto& el : stat_){
-            out << el.GetPosition() << "\t" << el.GetDirection()
-                <<"\t" << el.GetVolCount() << "\t" << el.GetSurfCount() << "\n";
+        using FileHolder = std::unique_ptr<FILE, int(*)(FILE*)>;
+        FileHolder output_file(fopen(surface_name_.c_str(), "w"), fclose);
+        if(!output_file){
+            fprintf(stderr, "Could not create file %s\n", surface_name_.c_str());
+            exit(1);
+        }
+        fprintf(output_file.get(),
+                "#POS_X\tPOS_Y\tPOS_Z\tVX\tVY\tVZ\tVolumeCount\tSurfaceCount\n");
+        for(const auto& pt : stat_){
+            fprintf(output_file.get(),
+                    "%.6e\t%.6e\t%.6e\t%.6e\t%.6e\t%.6e\t%zu\t%zu\n",
+                    pt.GetPosition().GetX(),
+                    pt.GetPosition().GetY(),
+                    pt.GetPosition().GetZ(),
+                    pt.GetDirection().GetX(),
+                    pt.GetDirection().GetY(),
+                    pt.GetDirection().GetZ(),
+                    pt.GetVolCount(),
+                    pt.GetSurfCount());
         }
     }
 }

@@ -1,4 +1,4 @@
-#ifndef SURFACE_HPP
+﻿#ifndef SURFACE_HPP
 #define SURFACE_HPP
 
 #include <string>
@@ -50,7 +50,7 @@ public:
 
     Surface(std::string g_name, std::vector<Vector> g_contour,
             std::unique_ptr<Reflector> g_reflector, bool save_flag);
-    void SaveSurfaceParticles(std::ofstream& out) const;
+    void SaveSurfaceParticles() const;
     void SaveParticle(const Particle& pt);
     bool CheckIfPointOnSurface(const Vector& point) const;
 
