@@ -1,4 +1,4 @@
-#ifndef REFLECTOR_HPP
+﻿#ifndef REFLECTOR_HPP
 #define REFLECTOR_HPP
 
 #include <random>
@@ -12,8 +12,7 @@ class Particle;
 
 class Reflector{
 public:
-    //TODO Make it return second optional for the case when particle dies!
-    virtual std::pair<bool, Vector> ReflectParticle(const Particle& pt,
+    virtual std::optional<Vector> ReflectParticle(const Particle& pt,
                            const Vector& normal, std::mt19937& rnd_gen) const = 0;
     virtual ~Reflector() = default;
 };
@@ -23,7 +22,7 @@ private:
     double reflection_coefficient_;
 public:
     MirrorReflector(const double val): reflection_coefficient_(val) {}
-    std::pair<bool, Vector> ReflectParticle(const Particle &pt,
+    std::optional<Vector> ReflectParticle(const Particle &pt,
                   const Vector& normal, std::mt19937& rnd_gen) const override;
 };
 
@@ -32,7 +31,7 @@ private:
     double reflection_coefficient_;
 public:
     LambertianReflector(const double val): reflection_coefficient_(val) {}
-    std::pair<bool, Vector> ReflectParticle(const Particle &pt,
+    std::optional<Vector> ReflectParticle(const Particle &pt,
                  const Vector& normal, std::mt19937& rnd_gen) const override;
 };
 

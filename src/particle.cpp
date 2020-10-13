@@ -118,8 +118,8 @@ bool Particle::MakeStep(std::vector<Surface>& walls,
     surf_count_++;
     auto surf_refl = walls[wall_id].GetReflector()->ReflectParticle(*this,
                                            walls[wall_id].GetNormal(), rnd_gen);
-    if(surf_refl.first){
-        V_ = surf_refl.second;
+    if(surf_refl){
+        V_ = surf_refl.value();
         return true;
     }
     //Here particle is dead --> save its position

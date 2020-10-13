@@ -88,8 +88,8 @@ int main(){
     for(size_t i=0; i<pt_num; i++){
         Particle pt(Vector(0.1, 0.5, 0.5), Vector(1.0, 0.0, 0.0));
         while(pt.MakeStep(walls, gas, rnd_gen)){}
-        if(i%100000==0){
-            printf("%.2lf%\n" , static_cast<double>(100.0*i/pt_num));
+        if((i+1)%100000==0){
+            printf("%.2lf %%\n" , static_cast<double>(100.0*i/pt_num));
         }
     }
 
