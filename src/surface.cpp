@@ -1,4 +1,4 @@
-
+﻿
 #include <utility>
 #include <vector>
 #include <iostream>
@@ -7,7 +7,7 @@
 
 #include "surface.hpp"
 
-Surface::Surface(std::string g_name, std::vector<Vector> g_contour,
+Surface::Surface(std::string g_name, std::vector<Vec3> g_contour,
         std::unique_ptr<Reflector> g_reflector, bool save_flag):
     stat_(), save_stat_(save_flag), contour_(std::move(g_contour)),
     surface_name_(std::move(g_name)), reflector_(std::move(g_reflector))
@@ -18,14 +18,14 @@ Surface::Surface(std::string g_name, std::vector<Vector> g_contour,
         exit(1);
     }
     coefs_ = Surface::CalcSurfaceCoefficients(contour_);
-    normal_ = Vector(coefs_.A_, coefs_.B_, coefs_.C_).Norm();
+    normal_ = Vec3(coefs_.A_, coefs_.B_, coefs_.C_).Norm();
     x_bnd_ = Surface::GetBoundary(contour_, 'x');
     y_bnd_ = Surface::GetBoundary(contour_, 'y');
     z_bnd_ = Surface::GetBoundary(contour_, 'z');
 }
 
 
-Surface::Boundary Surface::GetBoundary(const std::vector<Vector>& ctr, char axis){
+Surface::Boundary Surface::GetBoundary(const std::vector<Vec3>& ctr, char axis){
     std::vector<double> tmp;
     std::vector<double>::const_iterator res_min;
     std::vector<double>::const_iterator res_max;
@@ -61,7 +61,7 @@ Surface::Boundary Surface::GetBoundary(const std::vector<Vector>& ctr, char axis
 }
 
 Surface::SurfaceCoeficients Surface::CalcSurfaceCoefficients(
-                                            const std::vector<Vector> contour){
+                                            const std::vector<Vec3> contour){
     double A = (contour[1].GetY() - contour[0].GetY())*(contour[2].GetZ()- contour[0].GetZ())
             - (contour[2].GetY() - contour[0].GetY())*(contour[1].GetZ()- contour[0].GetZ());
     double B =-(contour[1].GetX() - contour[0].GetX())*(contour[2].GetZ()- contour[0].GetZ())
@@ -72,8 +72,8 @@ Surface::SurfaceCoeficients Surface::CalcSurfaceCoefficients(
     return {A, B, C, D};
 }
 
-const std::vector<Vector>& Surface::GetContour() const{return contour_;}
-const Vector& Surface::GetNormal() const{return normal_;}
+const std::vector<Vec3>& Surface::GetContour() const{return contour_;}
+const Vec3& Surface::GetNormal() const{return normal_;}
 bool Surface::IsSaveStat() const{ return save_stat_;}
 const Reflector* Surface::GetReflector() const {return reflector_.get();}
 const std::string& Surface::GetName() const {return surface_name_;}
@@ -112,7 +112,7 @@ void Surface::SaveSurfaceParticles() const{
     }
 }
 
-bool Surface::CheckIfPointOnSurface(const Vector& point) const{
+bool Surface::CheckIfPointOnSurface(const Vec3& point) const{
     //TODO Make adequate check for polygon by counting rotation algo...
     if(x_bnd_.min_==x_bnd_.max_ &&
             point.GetY()<y_bnd_.max_ && point.GetY()>y_bnd_.min_ &&

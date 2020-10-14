@@ -6,76 +6,129 @@
 #include "particle.hpp"
 #include "reflector.hpp"
 
-TEST(UtilsTests, ConstructorTests){
-    Vector v;
+TEST(Vec3Tests, ConstructorTests){
+    Vec3 v;
     EXPECT_EQ(v.GetX(), 0.0);
     EXPECT_EQ(v.GetY(), 0.0);
     EXPECT_EQ(v.GetZ(), 0.0);
-    Vector v1(1.0, 2.0, 3.0);
+    Vec3 v1(1.0, 2.0, 3.0);
     EXPECT_EQ(v1.GetX(), 1.0);
     EXPECT_EQ(v1.GetY(), 2.0);
     EXPECT_EQ(v1.GetZ(), 3.0);
-    Vector v2(Vector(4.0, 8.0, 12.0), Vector(1.0, 3.0, 5.0));
+    Vec3 v2(Vec3(4.0, 8.0, 12.0), Vec3(1.0, 3.0, 5.0));
     EXPECT_EQ(v2.GetX(), -3.0);
     EXPECT_EQ(v2.GetY(), -5.0);
     EXPECT_EQ(v2.GetZ(), -7.0);
 }
 
 
-TEST(UtilsTests, DotTest){
-    Vector v1(2.0, 5.0, 9.0);
-    Vector v2(1.0, 3.0, -0.5);
+TEST(Vec3Tests, DotTest){
+    Vec3 v1(2.0, 5.0, 9.0);
+    Vec3 v2(1.0, 3.0, -0.5);
     EXPECT_EQ(v1.Dot(v2), 12.5);
     EXPECT_EQ(v2.Dot(v1), 12.5);
 }
 
-TEST(UtilsTests, CrossTest){
-    Vector v1(1.0, 2.0, 3.0);
-    Vector v2(4.0, 5.0, 6.0);
-    Vector v3 = v1.Cross(v2);
+TEST(Vec3Tests, CrossTest){
+    Vec3 v1(1.0, 2.0, 3.0);
+    Vec3 v2(4.0, 5.0, 6.0);
+    Vec3 v3 = v1.Cross(v2);
     EXPECT_EQ(v3.GetX(), -3.0);
     EXPECT_EQ(v3.GetY(), 6.0);
     EXPECT_EQ(v3.GetZ(), -3.0);
-    Vector v4 = v2.Cross(v1);
+    Vec3 v4 = v2.Cross(v1);
     EXPECT_EQ(v4.GetX(), 3.0);
     EXPECT_EQ(v4.GetY(), -6.0);
     EXPECT_EQ(v4.GetZ(), 3.0);
 }
 
-TEST(UtilsTests, TimesTest){
-    Vector v(1.0, 2.0, 3.0);
-    Vector res = v.Times(-5);
+TEST(Vec3Tests, TimesTest){
+    Vec3 v(1.0, 2.0, 3.0);
+    Vec3 res = v.Times(-5);
     EXPECT_EQ(res.GetX(), -5.0);
     EXPECT_EQ(res.GetY(), -10.0);
     EXPECT_EQ(res.GetZ(), -15.0);
 }
 
 
-TEST(UtilsTests, NormTest){
-    Vector v(1.0, 2.0, -3.0);
-    Vector res = v.Norm();
+TEST(Vec3Tests, NormTest){
+    Vec3 v(1.0, 2.0, -3.0);
+    Vec3 res = v.Norm();
     EXPECT_EQ(res.GetX(), 1.0/std::sqrt(14.0));
     EXPECT_EQ(res.GetY(), 2.0/std::sqrt(14.0));
     EXPECT_EQ(res.GetZ(), -3.0/std::sqrt(14.0));
 }
 
+TEST(Vec3Tests, TestCompare){
+    Vec3 lhs(2.0, 15.0, -9);
+    Vec3 rhs1(2.0, 15.0, -9);
+    Vec3 rhs2(-2.0, 15.0, 9);
+    EXPECT_TRUE(lhs==rhs1);
+    EXPECT_FALSE(lhs==rhs2);
+}
 
-TEST(UtilsTests, CoordinateTransitionTest){
-    std::vector<Vector> basis(3);
-    basis[0] = Vector(1.0, 0.0, 0.0);
-    basis[1] = Vector(0.0, 1.0, 0.0);
-    basis[2] = Vector(0.0, 0.0, -1.0);
-    Vector tst(0.1, 0.2, 0.3);
-    Vector res = ApplyCoordinateTransition(basis, tst);
+TEST(MatrixTests, GenerationTest){
+    Vec3 i(0.2, 0.5, 20.0);
+    Vec3 j(0.5, 6.5, 20.0);
+    Vec3 k(0.24, 0.5, 2.0);
+    Basis_3x3 m(i, j, k);
+    std::vector<Vec3> basis = m.GetBasisCols();
+    EXPECT_TRUE(basis[0]==i.Norm());
+    EXPECT_TRUE(basis[1]==j.Norm());
+    EXPECT_TRUE(basis[2]==k.Norm());
+}
+
+
+TEST(MatrixTests, DeterminantTest){
+     Basis_3x3 m({0.6, 0.8, 0.0},
+                  {0.0, 0.6, -0.8},
+                  {-1.0, 0.0, 0.0});
+    EXPECT_NEAR(0.64, m.GetDeterminant(), 1e-15);
+}
+
+TEST(MatrixTests, InverseTest){
+    Basis_3x3 m({0.6, 0.8, 0.0},
+                  {0.0, 0.6, -0.8},
+                  {-1.0, 0.0, 0.0});
+    Basis_3x3 inv = m.GetInverse();
+    std::vector<Vec3> inv_basis = inv.GetBasisCols();
+    EXPECT_TRUE(inv_basis[0]==Vec3(0, 0, -1)) << inv_basis[0];
+    EXPECT_TRUE(inv_basis[1]==Vec3(1.25, 0, 0.75)) << inv_basis[1];
+    EXPECT_TRUE(inv_basis[2]==Vec3( 0.938,-1.25,-0.563)) << inv_basis[2];
+    Basis_3x3 m2({2.0, -2.0, 1.0},
+                  {2.0, 1.0, -2.0},
+                  {2.0, 1.0, -2.0});
+    ASSERT_DEATH(m2.GetInverse(), "Basis have zero deternminant!");
+}
+
+TEST(MatrixTests, TransposeTest){
+    Basis_3x3 m({0.6, 0.8, 0.0},
+                  {0.0, 0.6, -0.8},
+                  {-1.0, 0.0, 0.0});
+    Basis_3x3 tr = m.Transpose();
+    std::vector<Vec3> tr_basis = tr.GetBasisCols();
+    EXPECT_TRUE(tr_basis[0]==Vec3(0.6, 0.0, -1.0)) << tr_basis[0];
+    EXPECT_TRUE(tr_basis[1]==Vec3(0.8, 0.6, 0.0)) << tr_basis[1];
+    EXPECT_TRUE(tr_basis[2]==Vec3(0.0, -0.8, 0.0)) << tr_basis[2];
+}
+
+
+TEST(MatrixTests, CoordinateTransitionTest){
+    Basis_3x3 m({1.0, 0.0, 0.0},
+                  {0.0, 1.0, 0.0},
+                  {0.0, 0.0, -1.0});
+    Vec3 tst(0.1, 0.2, 0.3);
+    Vec3 res = m.ApplyToVec(tst);
     EXPECT_EQ(res.GetX(), tst.GetX());
     EXPECT_EQ(res.GetY(), tst.GetY());
     EXPECT_EQ(res.GetZ(), -tst.GetZ());
 }
 
 
-TEST(UtilsTests, ONBGenerationTest){
-    Vector new_z(0.1, 0.2, 0.3);
-    std::vector<Vector> basis = GenerateONBasisByNewZ(new_z);
+TEST(MatrixTests, TestGenerationFromZ){
+    Vec3 new_z(0.1, 0.2, 0.3);
+    Basis_3x3 m(new_z);
+    std::vector<Vec3> basis = m.GetBasisCols();
     EXPECT_NEAR(1.0, basis[0].Length(), 1e-15);
     EXPECT_NEAR(1.0, basis[1].Length(), 1e-15);
     EXPECT_NEAR(1.0, basis[2].Length(), 1e-15);
@@ -84,8 +137,8 @@ TEST(UtilsTests, ONBGenerationTest){
     EXPECT_NEAR(0.0, basis[1].Dot(basis[2]), 1e-15);
     EXPECT_NEAR(0.0, basis[0].Dot(basis[2]), 1e-15);
 
-    Vector z_orig(0.0, 0.0, 1.0);
-    Vector z_trans = ApplyCoordinateTransition(basis, z_orig);
+    Vec3 z_orig(0.0, 0.0, 1.0);
+    Vec3 z_trans = m.ApplyToVec(z_orig);
     new_z = new_z.Norm();
     EXPECT_NEAR(new_z.GetX(), z_trans.GetX(), 1e-15);
     EXPECT_NEAR(new_z.GetY(), z_trans.GetY(), 1e-15);
@@ -107,7 +160,7 @@ TEST(ParticleTests, ParticleGenerationtest){
 
     }
     {
-        Particle pt(Vector(1.0, 2.0, 3.0), Vector(4.0, 5.0, 6.0));
+        Particle pt(Vec3(1.0, 2.0, 3.0), Vec3(4.0, 5.0, 6.0));
         EXPECT_EQ(pt.GetPosition().GetX(), 1.0);
         EXPECT_EQ(pt.GetPosition().GetY(), 2.0);
         EXPECT_EQ(pt.GetPosition().GetZ(), 3.0);
@@ -119,8 +172,8 @@ TEST(ParticleTests, ParticleGenerationtest){
     }
     {
         std::mt19937 rnd_gen(42);
-        Vector pos(-1.0, 15.0, 48.0);
-        Vector dir(-2.0, 5.0, 10.0);
+        Vec3 pos(-1.0, 15.0, 48.0);
+        Vec3 dir(-2.0, 5.0, 10.0);
         Particle ptst(pos, dir, rnd_gen);
         EXPECT_EQ(ptst.GetPosition().GetX(), -1.0);
         EXPECT_EQ(ptst.GetPosition().GetY(), 15.0);
@@ -137,10 +190,10 @@ TEST(ParticleTests, ParticleGenerationtest){
 
 TEST(ParticleTests, GetRandomVelTest){
     std::mt19937 rnd_gen(42);
-    Vector dir(1.0, -5.0, 8.0);
+    Vec3 dir(1.0, -5.0, 8.0);
     Particle pt;
     for(size_t i=0; i<100; i++){
-        Vector res = pt.GetRandomVel(dir, rnd_gen);
+        Vec3 res = pt.GetRandomVel(dir, rnd_gen);
         EXPECT_GE(dir.Dot(res), 0);
         EXPECT_NEAR(res.Length(), 1.0, 1e-15);
     }
@@ -148,8 +201,8 @@ TEST(ParticleTests, GetRandomVelTest){
 
 TEST(ParticleTests, MakeGasCollisionTest){
     double distance = 15;
-    Vector dir(4.0, 5.0, 6.0);
-    Vector pos(1.0, 2.0, 3.0);
+    Vec3 dir(4.0, 5.0, 6.0);
+    Vec3 pos(1.0, 2.0, 3.0);
     Particle pt(pos, dir);
     std::mt19937 rnd_gen(42);
     pt.MakeGasCollision(distance, rnd_gen);
@@ -166,8 +219,8 @@ TEST(ParticleTests, MakeGasCollisionTest){
 
 
 TEST(ReflectorTests, MirrorReflectorTest){
-    Vector normal(0.0, 0.0, -1.0);
-    Vector dir(2.0, 3.0, 5.0);
+    Vec3 normal(0.0, 0.0, -1.0);
+    Vec3 dir(2.0, 3.0, 5.0);
     Particle pt({0.1, 0.2, 0.3}, dir);
     std::mt19937 rnd_gen(42);
     {
@@ -188,8 +241,8 @@ TEST(ReflectorTests, MirrorReflectorTest){
 
 
 TEST(ReflectorTests, LambertianReflectorTest){
-    Vector normal(0.0, 0.0, -1.0);
-    Vector dir(2.0, 3.0, 5.0);
+    Vec3 normal(0.0, 0.0, -1.0);
+    Vec3 dir(2.0, 3.0, 5.0);
     Particle pt({0.1, 0.2, 0.3}, dir);
     std::mt19937 rnd_gen(42);
     {
