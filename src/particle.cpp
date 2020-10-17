@@ -88,6 +88,7 @@ Vec3 Particle::GetRandomVel(const Vec3& direction,
     sin_theta = sqrt(1-cos_theta*cos_theta);
     phi = rnd(rnd_gen)*2*M_PI;
     Basis_3x3 coor_transition(direction);
+    coor_transition = coor_transition.Norm();
     Vec3 res_vec = coor_transition.ApplyToVec(
                      Vec3(sin_theta*sin(phi), sin_theta*cos(phi), cos_theta));
     return res_vec;
@@ -102,8 +103,8 @@ bool Particle::MakeStep(std::vector<Surface>& walls,
     bool colide_in_gas_flag = true;
     for(size_t i=0; i<walls.size(); i++){
         auto cross_res = GetCrossPoint(walls[i]);
-        if(cross_res && GetDistance(pos_, cross_res.value())<min_dist){
-            min_dist = GetDistance(pos_, cross_res.value());
+        if(cross_res && pos_.GetDistance(cross_res.value())<min_dist){
+            min_dist = pos_.GetDistance(cross_res.value());
             wall_id = i;
             colide_in_gas_flag = false;
             point_on_surf = cross_res.value();

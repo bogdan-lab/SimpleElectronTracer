@@ -51,6 +51,13 @@ TEST(Vec3Tests, TimesTest){
 }
 
 
+TEST(Vec3Tests, GetDistanceTest){
+    Vec3 v(1.0, 2.0, 3.0);
+    Vec3 v2(1.0, 6.0, 0.0);
+    EXPECT_EQ(v2.GetDistance(v), 5.0);
+    EXPECT_EQ(v2.GetDistance(v), v.GetDistance(v2));
+}
+
 TEST(Vec3Tests, NormTest){
     Vec3 v(1.0, 2.0, -3.0);
     Vec3 res = v.Norm();
@@ -73,11 +80,23 @@ TEST(MatrixTests, GenerationTest){
     Vec3 k(0.24, 0.5, 2.0);
     Basis_3x3 m(i, j, k);
     std::vector<Vec3> basis = m.GetBasisCols();
+    EXPECT_TRUE(basis[0]==i);
+    EXPECT_TRUE(basis[1]==j);
+    EXPECT_TRUE(basis[2]==k);
+}
+
+
+TEST(MatrixTests, NormalizationTest){
+    Vec3 i(0.2, 0.5, 20.0);
+    Vec3 j(0.5, 6.5, 20.0);
+    Vec3 k(0.24, 0.5, 2.0);
+    Basis_3x3 m(i, j, k);
+    m = m.Norm();
+    std::vector<Vec3> basis = m.GetBasisCols();
     EXPECT_TRUE(basis[0]==i.Norm());
     EXPECT_TRUE(basis[1]==j.Norm());
     EXPECT_TRUE(basis[2]==k.Norm());
 }
-
 
 TEST(MatrixTests, DeterminantTest){
      Basis_3x3 m({0.6, 0.8, 0.0},
@@ -87,14 +106,17 @@ TEST(MatrixTests, DeterminantTest){
 }
 
 TEST(MatrixTests, InverseTest){
-    Basis_3x3 m({0.6, 0.8, 0.0},
-                  {0.0, 0.6, -0.8},
-                  {-1.0, 0.0, 0.0});
+    Basis_3x3 m({0.2, 0.8, 0.0},
+                {0.0, 4.0, 4.0},
+                {-0.5, 0.0, 1.0});
     Basis_3x3 inv = m.GetInverse();
     std::vector<Vec3> inv_basis = inv.GetBasisCols();
-    EXPECT_TRUE(inv_basis[0]==Vec3(0, 0, -1)) << inv_basis[0];
-    EXPECT_TRUE(inv_basis[1]==Vec3(1.25, 0, 0.75)) << inv_basis[1];
-    EXPECT_TRUE(inv_basis[2]==Vec3( 0.938,-1.25,-0.563)) << inv_basis[2];
+    EXPECT_LE(inv_basis[0].GetDistance(Vec3(-5, 1, -4)), 1e-15)
+            << inv_basis[0];
+    EXPECT_LE(inv_basis[1].GetDistance(Vec3(2.5, -0.25, 1)), 1e-15)
+            << inv_basis[1];
+    EXPECT_LE(inv_basis[2].GetDistance(Vec3(-2.5, 0.5, -1)), 1e-15)
+            << inv_basis[2];
     Basis_3x3 m2({2.0, -2.0, 1.0},
                   {2.0, 1.0, -2.0},
                   {2.0, 1.0, -2.0});
@@ -129,25 +151,24 @@ TEST(MatrixTests, TestGenerationFromZ){
     Vec3 new_z(0.1, 0.2, 0.3);
     Basis_3x3 m(new_z);
     std::vector<Vec3> basis = m.GetBasisCols();
-    EXPECT_NEAR(1.0, basis[0].Length(), 1e-15);
-    EXPECT_NEAR(1.0, basis[1].Length(), 1e-15);
-    EXPECT_NEAR(1.0, basis[2].Length(), 1e-15);
 
     EXPECT_NEAR(0.0, basis[0].Dot(basis[1]), 1e-15);
     EXPECT_NEAR(0.0, basis[1].Dot(basis[2]), 1e-15);
     EXPECT_NEAR(0.0, basis[0].Dot(basis[2]), 1e-15);
 
     Vec3 z_orig(0.0, 0.0, 1.0);
+    m = m.Norm();
     Vec3 z_trans = m.ApplyToVec(z_orig);
     new_z = new_z.Norm();
+    //Check if normed basis generated according to Zvec will transform
+    //original z vector into itself
     EXPECT_NEAR(new_z.GetX(), z_trans.GetX(), 1e-15);
     EXPECT_NEAR(new_z.GetY(), z_trans.GetY(), 1e-15);
     EXPECT_NEAR(new_z.GetZ(), z_trans.GetZ(), 1e-15);
 }
 
 
-TEST(ParticleTests, ParticleGenerationtest){
-    {
+TEST(ParticleTests, ParticleGenerationTest1){
         Particle pt;
         EXPECT_EQ(pt.GetPosition().GetX(), 0.0);
         EXPECT_EQ(pt.GetPosition().GetY(), 0.0);
@@ -157,9 +178,9 @@ TEST(ParticleTests, ParticleGenerationtest){
         EXPECT_EQ(pt.GetDirection().GetZ(), 0.0);
         EXPECT_EQ(pt.GetSurfCount(), 0);
         EXPECT_EQ(pt.GetVolCount(), 0);
-
     }
-    {
+
+TEST(ParticleTests, ParticleGenerationTest2){
         Particle pt(Vec3(1.0, 2.0, 3.0), Vec3(4.0, 5.0, 6.0));
         EXPECT_EQ(pt.GetPosition().GetX(), 1.0);
         EXPECT_EQ(pt.GetPosition().GetY(), 2.0);
@@ -170,7 +191,8 @@ TEST(ParticleTests, ParticleGenerationtest){
         EXPECT_EQ(pt.GetSurfCount(), 0);
         EXPECT_EQ(pt.GetVolCount(), 0);
     }
-    {
+
+TEST(ParticleTests, ParticleGenerationTest3){
         std::mt19937 rnd_gen(42);
         Vec3 pos(-1.0, 15.0, 48.0);
         Vec3 dir(-2.0, 5.0, 10.0);
@@ -185,7 +207,6 @@ TEST(ParticleTests, ParticleGenerationtest){
             EXPECT_GE(dir.Dot(pt.GetDirection()), 0);
             EXPECT_NEAR(pt.GetDirection().Length(), 1.0, 1e-15);
         }
-    }
 }
 
 TEST(ParticleTests, GetRandomVelTest){

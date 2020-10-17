@@ -1,6 +1,7 @@
 ﻿#include <cmath>
 #include <vector>
 #include <random>
+#include <utility>
 
 #include "utils.hpp"
 #include "surface.hpp"
@@ -62,8 +63,10 @@ std::ostream& operator<<(std::ostream& out, const Vec3& vec){
     return out;
 }
 
-double GetDistance(const Vec3& start, const Vec3& end){
-    return Vec3(start, end).Length();
+double Vec3::GetDistance(const Vec3& end) const {
+    return sqrt((x_-end.GetX())*(x_-end.GetX()) +
+                (y_-end.GetY())*(y_-end.GetY()) +
+                (z_-end.GetZ())*(z_-end.GetZ()));
 }
 
 Vec3 VerifyPointOnSurface(const Surface& s, const Vec3& point){
@@ -84,10 +87,10 @@ Vec3 VerifyPointOnSurface(const Surface& s, const Vec3& point){
     }
 }
 
-Basis_3x3::Basis_3x3(const Vec3& i, const Vec3& j, const Vec3& k){
-    m_.emplace_back(i);
-    m_.emplace_back(j);
-    m_.emplace_back(k);
+Basis_3x3::Basis_3x3(Vec3 i, Vec3 j, Vec3 k){
+    m_.push_back(std::move(i));
+    m_.push_back(std::move(j));
+    m_.push_back(std::move(k));
 }
 
 
@@ -137,9 +140,16 @@ Basis_3x3 Basis_3x3::GetInverse() const {
     double a23 = -(m_[0].GetX()*m_[1].GetZ() - m_[1].GetX()*m_[0].GetZ())/det;
     double a31 = (m_[1].GetX()*m_[2].GetY() - m_[2].GetX()*m_[1].GetY())/det;
     double a32 = -(m_[0].GetX()*m_[2].GetY() - m_[2].GetX()*m_[0].GetY())/det;
-    double a33 = -(m_[0].GetX()*m_[1].GetY() - m_[1].GetX()*m_[0].GetY())/det;
+    double a33 = (m_[0].GetX()*m_[1].GetY() - m_[1].GetX()*m_[0].GetY())/det;
     Basis_3x3 tmp(Vec3(a11, a21, a31),
                    Vec3(a12, a22, a32),
                    Vec3(a13, a23, a33));
     return tmp.Transpose();
 }
+
+
+Basis_3x3 Basis_3x3::Norm() const {
+    return {m_[0].Norm(), m_[1].Norm(), m_[2].Norm()};
+}
+
+
