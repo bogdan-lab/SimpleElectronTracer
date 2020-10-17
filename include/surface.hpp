@@ -47,7 +47,7 @@ private:
                                               const std::vector<Vec3> contour);
 public:
 
-
+    Surface() = delete;
     Surface(std::string g_name, std::vector<Vec3> g_contour,
             std::unique_ptr<Reflector> g_reflector, bool save_flag);
     void SaveSurfaceParticles() const;
