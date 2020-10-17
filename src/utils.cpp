@@ -69,21 +69,13 @@ double Vec3::GetDistance(const Vec3& end) const {
                 (z_-end.GetZ())*(z_-end.GetZ()));
 }
 
-Vec3 VerifyPointOnSurface(const Surface& s, const Vec3& point){
-    //Stupid solution for now
-    if(s.GetXBnd().max_==s.GetXBnd().min_){
-        return Vec3(s.GetXBnd().min_, point.GetY(), point.GetZ());
-    }
-    else if (s.GetYBnd().min_ == s.GetYBnd().max_){
-        return Vec3(point.GetX(), s.GetYBnd().max_, point.GetZ());
-    }
-    else if (s.GetZBnd().min_==s.GetZBnd().max_){
-        return Vec3(point.GetX(), point.GetY(), s.GetZBnd().min_);
-    }
-    else{
-        std::cerr << "Bended surfaces like " << s.GetName()
-                  << "are not supported yet!\n";
-        exit(1);
+void VerifyPointInVolume(const Surface& s, Vec3& point, double step){
+    /*!Function assumes that surface normal is directed inside the volume!*/
+    Vec3 p_on_s = s.GetPointOnSurface();
+    Vec3 from_s_to_point(p_on_s, point);
+    while(from_s_to_point.Dot(s.GetNormal())<0){
+        point = point + s.GetNormal().Times(step);
+        from_s_to_point = Vec3(p_on_s, point);
     }
 }
 

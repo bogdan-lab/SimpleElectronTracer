@@ -54,6 +54,7 @@ public:
     void SaveParticle(const Particle& pt);
     bool CheckIfPointOnSurface(const Vec3& point) const;
 
+    Vec3 GetPointOnSurface() const;
     const std::vector<Vec3>& GetContour() const ;
     const Vec3& GetNormal() const;
     bool IsSaveStat() const;

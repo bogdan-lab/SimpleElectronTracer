@@ -24,6 +24,20 @@ Surface::Surface(std::string g_name, std::vector<Vec3> g_contour,
     z_bnd_ = Surface::GetBoundary(contour_, 'z');
 }
 
+Vec3 Surface::GetPointOnSurface() const{
+    if(coefs_.C_!=0){
+        return {0.0, 0.0, -coefs_.D_/coefs_.C_};
+    } else if (coefs_.B_!=0){
+        return {0.0, -coefs_.D_/coefs_.B_, 0.0};
+    } else if (coefs_.A_!=0){
+        return {-coefs_.D_/coefs_.A_, 0.0, 0.0};
+    } else {
+        fprintf(stderr, "Surface %s has all coefficients equal to zero!!",
+                surface_name_.c_str());
+        exit(1);
+    }
+
+}
 
 Surface::Boundary Surface::GetBoundary(const std::vector<Vec3>& ctr, char axis){
     std::vector<double> tmp;

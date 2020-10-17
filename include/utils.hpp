@@ -57,5 +57,5 @@ public:
     const std::vector<Vec3>& GetBasisCols() const;
 };
 
-Vec3 VerifyPointOnSurface(const Surface& s, const Vec3& point);
+void VerifyPointInVolume(const Surface& s, Vec3& point, double step=1e-6);
 #endif //UTILS_HEADER
