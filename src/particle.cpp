@@ -36,9 +36,10 @@ std::optional<Vec3> Particle::GetCrossPoint(const Surface& s) const {
         return std::nullopt;
     }
     //Look at time needed to reach the surface
-    double t = -1*(Sc.A_*pos_.GetX() + Sc.B_*pos_.GetY()
-                                                 + Sc.C_*pos_.GetZ() + Sc.D_)
-                        /(Sc.A_*V_.GetX() + Sc.B_*V_.GetY() + Sc.C_*V_.GetZ());
+    double tmp_num = Sc.A_*pos_.GetX() + Sc.B_*pos_.GetY() +
+                     Sc.C_*pos_.GetZ() + Sc.D_;
+    double tmp_den = Sc.A_*V_.GetX() + Sc.B_*V_.GetY() + Sc.C_*V_.GetZ();
+    double t = -1*tmp_num/tmp_den;
     if(t<=0){
         return std::nullopt;
     }

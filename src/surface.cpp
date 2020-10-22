@@ -19,9 +19,6 @@ Surface::Surface(std::string g_name, std::vector<Vec3> g_contour,
     }
     coefs_ = Surface::CalcSurfaceCoefficients(contour_);
     normal_ = Vec3(coefs_.A_, coefs_.B_, coefs_.C_).Norm();
-    x_bnd_ = Surface::GetBoundary(contour_, 'x');
-    y_bnd_ = Surface::GetBoundary(contour_, 'y');
-    z_bnd_ = Surface::GetBoundary(contour_, 'z');
 }
 
 Vec3 Surface::GetPointOnSurface() const{
@@ -39,40 +36,6 @@ Vec3 Surface::GetPointOnSurface() const{
 
 }
 
-Surface::Boundary Surface::GetBoundary(const std::vector<Vec3>& ctr, char axis){
-    std::vector<double> tmp;
-    std::vector<double>::const_iterator res_min;
-    std::vector<double>::const_iterator res_max;
-    switch (axis) {
-    case 'x':
-        tmp.push_back(ctr[0].GetX());
-        tmp.push_back(ctr[1].GetX());
-        tmp.push_back(ctr[2].GetX());
-        tmp.push_back(ctr[3].GetX());
-        res_min = std::min_element(tmp.begin(), tmp.end());
-        res_max = std::max_element(tmp.begin(), tmp.end());
-        return {*res_min, *res_max};
-    case 'y':
-        tmp.push_back(ctr[0].GetY());
-        tmp.push_back(ctr[1].GetY());
-        tmp.push_back(ctr[2].GetY());
-        tmp.push_back(ctr[3].GetY());
-        res_min = std::min_element(tmp.begin(), tmp.end());
-        res_max = std::max_element(tmp.begin(), tmp.end());
-        return {*res_min, *res_max};
-    case 'z':
-        tmp.push_back(ctr[0].GetZ());
-        tmp.push_back(ctr[1].GetZ());
-        tmp.push_back(ctr[2].GetZ());
-        tmp.push_back(ctr[3].GetZ());
-        res_min = std::min_element(tmp.begin(), tmp.end());
-        res_max = std::max_element(tmp.begin(), tmp.end());
-        return {*res_min, *res_max};
-    default:
-        std::cerr << "Unknown axis!" << axis << "\n";
-        exit(1);
-    }
-}
 
 Surface::SurfaceCoeficients Surface::CalcSurfaceCoefficients(
                                             const std::vector<Vec3> contour){
@@ -95,10 +58,6 @@ void Surface::SaveParticle(const Particle& pt){stat_.push_back(pt);}
 const Surface::SurfaceCoeficients& Surface::GetSurfaceCoefficients() const {
     return coefs_;
 }
-const Surface::Boundary& Surface::GetXBnd() const {return x_bnd_;}
-const Surface::Boundary& Surface::GetYBnd() const {return y_bnd_;}
-const Surface::Boundary& Surface::GetZBnd() const {return z_bnd_;}
-
 
 
 void Surface::SaveSurfaceParticles() const{
@@ -127,21 +86,75 @@ void Surface::SaveSurfaceParticles() const{
 }
 
 bool Surface::CheckIfPointOnSurface(const Vec3& point) const{
-    //TODO Make adequate check for polygon by counting rotation algo...
-    if(x_bnd_.min_==x_bnd_.max_ &&
-            point.GetY()<y_bnd_.max_ && point.GetY()>y_bnd_.min_ &&
-            point.GetZ()<z_bnd_.max_ && point.GetZ()>z_bnd_.min_ ){
-        return true;
+    //Due to the finite double precision we still expect that given point
+    //will be not directly on the surface
+    //anyway we will transform its and surface coordinates into the basis
+    //where Z is parallel to the normal and than compare X and Y coordinates
+    //of the point and surface polygon in order to answer the question whether
+    //point is on the surface
+    Basis_3x3 surf_basis(normal_);
+    surf_basis = surf_basis.Norm();
+    Vec3 basis_point = surf_basis.GetCoordinatesInThis(point);
+    std::vector<Vec3> basis_contour;
+    basis_contour.reserve(contour_.size()+1);
+    for(size_t i=0; i<contour_.size(); i++){
+        basis_contour.push_back(surf_basis.GetCoordinatesInThis(contour_[i]));
     }
-    if(y_bnd_.min_==y_bnd_.max_ &&
-            point.GetX()<x_bnd_.max_ && point.GetX()>x_bnd_.min_ &&
-            point.GetZ()<z_bnd_.max_ && point.GetZ()>z_bnd_.min_ ){
-        return true;
+    if(basis_contour[0]!=basis_contour[contour_.size()-1]){
+        basis_contour.push_back(basis_contour[0]); //loop contour
     }
-    if(z_bnd_.min_==z_bnd_.max_ &&
-            point.GetX()<x_bnd_.max_ && point.GetX()>x_bnd_.min_ &&
-            point.GetY()<y_bnd_.max_ && point.GetY()>y_bnd_.min_ ){
-        return true;
+    //Counting rotations....
+    //prepare quater information for each point
+    std::vector<int> quarters(basis_contour.size(), 0);
+    for(size_t i=0; i<basis_contour.size(); i++){
+        if(basis_contour[i].GetX()>basis_point.GetX() &&
+                basis_contour[i].GetY()>=basis_point.GetY()){
+            quarters[i] = 0;
+        }
+        if(basis_contour[i].GetX()<=basis_point.GetX() &&
+                basis_contour[i].GetY()>basis_point.GetY()){
+            quarters[i] = 1;
+        }
+        if(basis_contour[i].GetX()<basis_point.GetX() &&
+                basis_contour[i].GetY()<=basis_point.GetY()){
+            quarters[i] = 2;
+        }
+        if(basis_contour[i].GetX()>=basis_point.GetX() &&
+                basis_contour[i].GetY()<basis_point.GetY()){
+            quarters[i] = 3;
+        }
+        fprintf(stderr, "INCORRECT QUARTER CALCULATION!");
+        exit(1);
     }
-    return false;
+    auto get_orient = [basis_point](const Vec3& nod_prev, const Vec3& nod_next){
+        double tmp_1 = (nod_prev.GetX() - basis_point.GetX())*
+                       (nod_next.GetY() - basis_point.GetY());
+        double tmp_2 = (nod_next.GetX() - basis_point.GetX())*
+                       (nod_prev.GetY() - basis_point.GetY());
+        return  tmp_1 - tmp_2;
+    };
+    //Counting winding number
+    int winding_num = 0;
+    for(size_t i=0; i<quarters.size()-1; i++){
+        switch (q[i+1]-q[i]){
+            case 1:
+            case -3:
+                winding_num++;
+                break;
+            case -1:
+            case 3:
+                winding_num--;
+                break;
+            case 2:
+            case -2:
+                double det = get_orient(basis_contour[i], basis_contour[i+1]);
+                winding_num += 2*abs(det)/det;
+                break;
+            default:
+                fprintf(stderr, "Something went wrong in count algo");
+                exit(1);
+        }
+    }
+    winding_num/=4;
+    return winding_num%2!=0;
 }

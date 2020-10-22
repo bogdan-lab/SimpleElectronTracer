@@ -98,6 +98,10 @@ Basis_3x3::Basis_3x3(const Vec3& given_z){
 }
 
 const std::vector<Vec3>& Basis_3x3::GetBasisCols() const {return m_;}
+const Vec3& Basis_3x3::GetXVec() const{return m_[0];}
+const Vec3& Basis_3x3::GetYVec() const{return m_[1];}
+const Vec3& Basis_3x3::GetZVec() const{return m_[2];}
+
 
 Vec3 Basis_3x3::ApplyToVec(const Vec3& vec) const {
     return m_[0].Times(vec.GetX()) +
@@ -144,4 +148,6 @@ Basis_3x3 Basis_3x3::Norm() const {
     return {m_[0].Norm(), m_[1].Norm(), m_[2].Norm()};
 }
 
-
+Vec3 Basis_3x3::GetCoordinatesInThis(const Vec3 vec) const {
+    return {vec.Dot(m_[0]), vec.Dot(m_[1]), vec.Dot(m_[2])};
+}

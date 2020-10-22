@@ -54,7 +54,11 @@ public:
     Basis_3x3 Transpose() const ;
     Basis_3x3 GetInverse() const;
     Basis_3x3 Norm() const ;
+    Vec3 GetCoordinatesInThis(const Vec3& vec) const;
     const std::vector<Vec3>& GetBasisCols() const;
+    const Vec3& GetXVec() const;
+    const Vec3& GetYVec() const;
+    const Vec3& GetZVec() const;
 };
 
 void VerifyPointInVolume(const Surface& s, Vec3& point, double step=1e-6);
