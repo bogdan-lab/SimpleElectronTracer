@@ -45,13 +45,9 @@ std::optional<Vec3> Particle::GetCrossPoint(const Surface& s) const {
     }
     //Here at least direction is correct --> check for boundaries
     Vec3 cross_point = {pos_.GetX() + V_.GetX()*t,
-                          pos_.GetY() + V_.GetY()*t,
-                          pos_.GetZ() + V_.GetZ()*t};
-    VerifyPointInVolume(s, cross_point, 1e-6);
-    if (s.CheckIfPointOnSurface(cross_point)){
-        return cross_point;
-    }
-    return std::nullopt;
+                        pos_.GetY() + V_.GetY()*t,
+                        pos_.GetZ() + V_.GetZ()*t};
+    return s.CheckIfPointOnSurface(cross_point);
 }
 
 double Particle::GetDistanceInGas(const Background& gas,
@@ -87,8 +83,7 @@ Vec3 Particle::GetRandomVel(const Vec3& direction,
     cos_theta = rnd(rnd_gen);
     sin_theta = sqrt(1-cos_theta*cos_theta);
     phi = rnd(rnd_gen)*2*M_PI;
-    Basis_3x3 coor_transition(direction);
-    coor_transition = coor_transition.Norm();
+    ONBasis_3x3 coor_transition(direction);
     Vec3 res_vec = coor_transition.ApplyToVec(
                      Vec3(sin_theta*sin(phi), sin_theta*cos(phi), cos_theta));
     return res_vec;

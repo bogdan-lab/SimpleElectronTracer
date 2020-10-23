@@ -42,24 +42,26 @@ Vec3 operator-(const Vec3& lhs, const Vec3& rhs);
 bool operator==(const Vec3& lhs, const Vec3& rhs);
 std::ostream& operator<<(std::ostream& out, const Vec3& vec);
 
-class Basis_3x3{
+class ONBasis_3x3{
 private:
     std::vector<Vec3> m_;
 public:
-    Basis_3x3() = delete;
-    Basis_3x3(Vec3 i, Vec3 j, Vec3 k);
-    Basis_3x3(const Vec3& given_z);
+    ONBasis_3x3() = delete;
+    ONBasis_3x3(const Vec3& i, const Vec3& j, const Vec3& k);
+    ONBasis_3x3(const Vec3& given_z);
     Vec3 ApplyToVec(const Vec3& vec) const ;
-    double GetDeterminant() const ;
-    Basis_3x3 Transpose() const ;
-    Basis_3x3 GetInverse() const;
-    Basis_3x3 Norm() const ;
-    Vec3 GetCoordinatesInThis(const Vec3& vec) const;
-    const std::vector<Vec3>& GetBasisCols() const;
+    Vec3 FromOriginalCoorsToThis(const Vec3& vec) const;
+    Vec3 FromThisCoorsToOriginal(const Vec3& vec) const;
     const Vec3& GetXVec() const;
     const Vec3& GetYVec() const;
     const Vec3& GetZVec() const;
 };
 
 void VerifyPointInVolume(const Surface& s, Vec3& point, double step=1e-6);
+
+std::vector<int> PrepareQuarterListForContour(const std::vector<Vec3>& contour,
+                                              const Vec3& point);
+int CalculateWindingNumber(const std::vector<int>& quarters,
+                           const std::vector<Vec3> contour,
+                           const Vec3& point);
 #endif //UTILS_HEADER

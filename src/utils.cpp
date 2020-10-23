@@ -79,75 +79,108 @@ void VerifyPointInVolume(const Surface& s, Vec3& point, double step){
     }
 }
 
-Basis_3x3::Basis_3x3(Vec3 i, Vec3 j, Vec3 k){
-    m_.push_back(std::move(i));
-    m_.push_back(std::move(j));
-    m_.push_back(std::move(k));
+ONBasis_3x3::ONBasis_3x3(const Vec3& i, const Vec3& j, const Vec3& k){
+    m_.push_back(i.Norm());
+    m_.push_back(j.Norm());
+    m_.push_back(k.Norm());
 }
 
 
-Basis_3x3::Basis_3x3(const Vec3& given_z){
-    Vec3 tmp_cross_x = given_z.Cross(Vec3(1.0, 0.0, 0.0));
-    Vec3 tmp_cross_y = given_z.Cross(Vec3(0.0, 1.0, 0.0));
+ONBasis_3x3::ONBasis_3x3(const Vec3& given_z){
+    m_.reserve(3);
+    Vec3 new_z = given_z.Norm();
+    Vec3 tmp_cross_x = new_z.Cross(Vec3(1.0, 0.0, 0.0));
+    Vec3 tmp_cross_y = new_z.Cross(Vec3(0.0, 1.0, 0.0));
     Vec3 new_y = tmp_cross_x.Length2()>tmp_cross_y.Length2() ?
                 tmp_cross_x : tmp_cross_y;
-    Vec3 new_x = new_y.Cross(given_z);
-    m_.emplace_back(new_x);
-    m_.emplace_back(new_y);
-    m_.emplace_back(given_z);
+    Vec3 new_x = new_y.Cross(new_z);
+    m_.push_back(new_x.Norm());
+    m_.push_back(new_y.Norm());
+    m_.push_back(std::move(new_z));
 }
 
-const std::vector<Vec3>& Basis_3x3::GetBasisCols() const {return m_;}
-const Vec3& Basis_3x3::GetXVec() const{return m_[0];}
-const Vec3& Basis_3x3::GetYVec() const{return m_[1];}
-const Vec3& Basis_3x3::GetZVec() const{return m_[2];}
+const Vec3& ONBasis_3x3::GetXVec() const{return m_[0];}
+const Vec3& ONBasis_3x3::GetYVec() const{return m_[1];}
+const Vec3& ONBasis_3x3::GetZVec() const{return m_[2];}
 
 
-Vec3 Basis_3x3::ApplyToVec(const Vec3& vec) const {
+Vec3 ONBasis_3x3::ApplyToVec(const Vec3& vec) const {
     return m_[0].Times(vec.GetX()) +
            m_[1].Times(vec.GetY()) +
            m_[2].Times(vec.GetZ());
 }
 
-
-double Basis_3x3::GetDeterminant() const{
-    return m_[0].GetX()*(m_[1].GetY()*m_[2].GetZ() - m_[2].GetY()*m_[1].GetZ())
-          -m_[1].GetX()*(m_[0].GetY()*m_[2].GetZ() - m_[2].GetY()*m_[0].GetZ())
-          +m_[2].GetX()*(m_[0].GetY()*m_[1].GetZ() - m_[1].GetY()*m_[0].GetZ());
+Vec3 ONBasis_3x3::FromOriginalCoorsToThis(const Vec3& vec) const {
+    return {vec.Dot(m_[0]), vec.Dot(m_[1]), vec.Dot(m_[2])};
 }
 
-Basis_3x3 Basis_3x3::Transpose() const {
-    return {Vec3(m_[0].GetX(), m_[1].GetX(), m_[2].GetX()),
-            Vec3(m_[0].GetY(), m_[1].GetY(), m_[2].GetY()),
-            Vec3(m_[0].GetZ(), m_[1].GetZ(), m_[2].GetZ())};
+Vec3 ONBasis_3x3::FromThisCoorsToOriginal(const Vec3& vec) const{
+    return m_[0].Times(vec.GetX()) +
+           m_[1].Times(vec.GetY()) +
+           m_[2].Times(vec.GetZ());
 }
 
-Basis_3x3 Basis_3x3::GetInverse() const {
-    double det = GetDeterminant();
-    if (det==0){
-        fprintf(stderr, "Basis have zero deternminant!");
+std::vector<int> PrepareQuarterListForContour(const std::vector<Vec3> &contour,
+                                              const Vec3 &point){
+    std::vector<int> quarters(contour.size(), 0);
+    for(size_t i=0; i<contour.size(); i++){
+        if(contour[i].GetX()>point.GetX() &&
+                contour[i].GetY()>=point.GetY()){
+            quarters[i] = 0;
+        }
+        if(contour[i].GetX()<=point.GetX() &&
+                contour[i].GetY()>point.GetY()){
+            quarters[i] = 1;
+        }
+        if(contour[i].GetX()<point.GetX() &&
+                contour[i].GetY()<=point.GetY()){
+            quarters[i] = 2;
+        }
+        if(contour[i].GetX()>=point.GetX() &&
+                contour[i].GetY()<point.GetY()){
+            quarters[i] = 3;
+        }
+        fprintf(stderr, "INCORRECT QUARTER CALCULATION!");
         exit(1);
     }
-    double a11 = (m_[1].GetY()*m_[2].GetZ() - m_[2].GetY()*m_[1].GetZ())/det;
-    double a12 = -(m_[0].GetY()*m_[2].GetZ() - m_[2].GetY()*m_[0].GetZ())/det;
-    double a13 = (m_[0].GetY()*m_[1].GetZ() - m_[1].GetY()*m_[0].GetZ())/det;
-    double a21 = -(m_[1].GetX()*m_[2].GetZ() - m_[2].GetX()*m_[1].GetZ())/det;
-    double a22 = (m_[0].GetX()*m_[2].GetZ() - m_[2].GetX()*m_[0].GetZ())/det;
-    double a23 = -(m_[0].GetX()*m_[1].GetZ() - m_[1].GetX()*m_[0].GetZ())/det;
-    double a31 = (m_[1].GetX()*m_[2].GetY() - m_[2].GetX()*m_[1].GetY())/det;
-    double a32 = -(m_[0].GetX()*m_[2].GetY() - m_[2].GetX()*m_[0].GetY())/det;
-    double a33 = (m_[0].GetX()*m_[1].GetY() - m_[1].GetX()*m_[0].GetY())/det;
-    Basis_3x3 tmp(Vec3(a11, a21, a31),
-                   Vec3(a12, a22, a32),
-                   Vec3(a13, a23, a33));
-    return tmp.Transpose();
+    return quarters;
 }
 
-
-Basis_3x3 Basis_3x3::Norm() const {
-    return {m_[0].Norm(), m_[1].Norm(), m_[2].Norm()};
-}
-
-Vec3 Basis_3x3::GetCoordinatesInThis(const Vec3 vec) const {
-    return {vec.Dot(m_[0]), vec.Dot(m_[1]), vec.Dot(m_[2])};
+int CalculateWindingNumber(const std::vector<int>& quarters,
+                           const std::vector<Vec3> contour,
+                           const Vec3& point){
+    auto get_orient = [point](const Vec3& nod_prev, const Vec3& nod_next){
+        double tmp_1 = (nod_prev.GetX() - point.GetX())*
+                       (nod_next.GetY() - point.GetY());
+        double tmp_2 = (nod_next.GetX() - point.GetX())*
+                       (nod_prev.GetY() - point.GetY());
+        return  tmp_1 - tmp_2;
+    };
+    //Counting winding number
+    int winding_num = 0;
+    for(size_t i=0; i<quarters.size()-1; i++){
+        switch (quarters[i+1]-quarters[i]){
+            case 0:
+                break;
+            case 1:
+            case -3:{
+                winding_num++;
+            }break;
+            case -1:
+            case 3:{
+                winding_num--;
+            }break;
+            case 2:
+            case -2:{
+                double det = get_orient(contour[i], contour[i+1]);
+                winding_num += 2*abs(det)/det;
+            }break;
+            default:{
+                fprintf(stderr, "Something went wrong in count algo");
+                exit(1);
+             }
+        }
+    }
+    winding_num/=4;
+    return winding_num;
 }

@@ -85,76 +85,39 @@ void Surface::SaveSurfaceParticles() const{
     }
 }
 
-bool Surface::CheckIfPointOnSurface(const Vec3& point) const{
+std::vector<Vec3> Surface::TranslateContourIntoBasis(
+        const ONBasis_3x3 &basis) const{
+    std::vector<Vec3> basis_contour;
+    basis_contour.reserve(contour_.size()+1);
+    for(size_t i=0; i<contour_.size(); i++){
+        basis_contour.push_back(basis.FromOriginalCoorsToThis(contour_[i]));
+    }
+    return basis_contour;
+}
+
+std::optional<Vec3> Surface::CheckIfPointOnSurface(const Vec3& point) const{
     //Due to the finite double precision we still expect that given point
     //will be not directly on the surface
     //anyway we will transform its and surface coordinates into the basis
     //where Z is parallel to the normal and than compare X and Y coordinates
     //of the point and surface polygon in order to answer the question whether
     //point is on the surface
-    Basis_3x3 surf_basis(normal_);
-    surf_basis = surf_basis.Norm();
-    Vec3 basis_point = surf_basis.GetCoordinatesInThis(point);
-    std::vector<Vec3> basis_contour;
-    basis_contour.reserve(contour_.size()+1);
-    for(size_t i=0; i<contour_.size(); i++){
-        basis_contour.push_back(surf_basis.GetCoordinatesInThis(contour_[i]));
-    }
-    if(basis_contour[0]!=basis_contour[contour_.size()-1]){
+    ONBasis_3x3 surf_basis(normal_);
+    Vec3 basis_point = surf_basis.FromOriginalCoorsToThis(point);
+    std::vector<Vec3> basis_contour = TranslateContourIntoBasis(surf_basis);
+    if(!(basis_contour[0]==basis_contour[contour_.size()-1])){
         basis_contour.push_back(basis_contour[0]); //loop contour
     }
     //Counting rotations....
-    //prepare quater information for each point
-    std::vector<int> quarters(basis_contour.size(), 0);
-    for(size_t i=0; i<basis_contour.size(); i++){
-        if(basis_contour[i].GetX()>basis_point.GetX() &&
-                basis_contour[i].GetY()>=basis_point.GetY()){
-            quarters[i] = 0;
-        }
-        if(basis_contour[i].GetX()<=basis_point.GetX() &&
-                basis_contour[i].GetY()>basis_point.GetY()){
-            quarters[i] = 1;
-        }
-        if(basis_contour[i].GetX()<basis_point.GetX() &&
-                basis_contour[i].GetY()<=basis_point.GetY()){
-            quarters[i] = 2;
-        }
-        if(basis_contour[i].GetX()>=basis_point.GetX() &&
-                basis_contour[i].GetY()<basis_point.GetY()){
-            quarters[i] = 3;
-        }
-        fprintf(stderr, "INCORRECT QUARTER CALCULATION!");
-        exit(1);
+    std::vector<int> quarters = PrepareQuarterListForContour(basis_contour,
+                                                             basis_point);
+    int winding_num = CalculateWindingNumber(quarters, basis_contour,
+                                             basis_point);
+    if (winding_num%2==0){
+        return std::nullopt;
     }
-    auto get_orient = [basis_point](const Vec3& nod_prev, const Vec3& nod_next){
-        double tmp_1 = (nod_prev.GetX() - basis_point.GetX())*
-                       (nod_next.GetY() - basis_point.GetY());
-        double tmp_2 = (nod_next.GetX() - basis_point.GetX())*
-                       (nod_prev.GetY() - basis_point.GetY());
-        return  tmp_1 - tmp_2;
-    };
-    //Counting winding number
-    int winding_num = 0;
-    for(size_t i=0; i<quarters.size()-1; i++){
-        switch (q[i+1]-q[i]){
-            case 1:
-            case -3:
-                winding_num++;
-                break;
-            case -1:
-            case 3:
-                winding_num--;
-                break;
-            case 2:
-            case -2:
-                double det = get_orient(basis_contour[i], basis_contour[i+1]);
-                winding_num += 2*abs(det)/det;
-                break;
-            default:
-                fprintf(stderr, "Something went wrong in count algo");
-                exit(1);
-        }
-    }
-    winding_num/=4;
-    return winding_num%2!=0;
+    //Verify particle will stay inside the volume
+    return surf_basis.FromThisCoorsToOriginal({basis_point.GetX(),
+                                               basis_point.GetY(),
+                                               0.0});
 }

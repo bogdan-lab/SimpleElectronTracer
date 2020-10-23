@@ -79,7 +79,7 @@ TEST(MatrixTests, GenerationTest){
     Vec3 i(0.2, 0.5, 20.0);
     Vec3 j(0.5, 6.5, 20.0);
     Vec3 k(0.24, 0.5, 2.0);
-    Basis_3x3 m(i, j, k);
+    ONBasis_3x3 m(i, j, k);
     std::vector<Vec3> basis = m.GetBasisCols();
     EXPECT_TRUE(basis[0]==i);
     EXPECT_TRUE(basis[1]==j);
@@ -91,7 +91,7 @@ TEST(MatrixTests, NormalizationTest){
     Vec3 i(0.2, 0.5, 20.0);
     Vec3 j(0.5, 6.5, 20.0);
     Vec3 k(0.24, 0.5, 2.0);
-    Basis_3x3 m(i, j, k);
+    ONBasis_3x3 m(i, j, k);
     m = m.Norm();
     std::vector<Vec3> basis = m.GetBasisCols();
     EXPECT_TRUE(basis[0]==i.Norm());
@@ -100,17 +100,17 @@ TEST(MatrixTests, NormalizationTest){
 }
 
 TEST(MatrixTests, DeterminantTest){
-     Basis_3x3 m({0.6, 0.8, 0.0},
+     ONBasis_3x3 m({0.6, 0.8, 0.0},
                   {0.0, 0.6, -0.8},
                   {-1.0, 0.0, 0.0});
     EXPECT_NEAR(0.64, m.GetDeterminant(), 1e-15);
 }
 
 TEST(MatrixTests, InverseTest){
-    Basis_3x3 m({0.2, 0.8, 0.0},
+    ONBasis_3x3 m({0.2, 0.8, 0.0},
                 {0.0, 4.0, 4.0},
                 {-0.5, 0.0, 1.0});
-    Basis_3x3 inv = m.GetInverse();
+    ONBasis_3x3 inv = m.GetInverse();
     std::vector<Vec3> inv_basis = inv.GetBasisCols();
     EXPECT_LE(inv_basis[0].GetDistance(Vec3(-5, 1, -4)), 1e-15)
             << inv_basis[0];
@@ -118,17 +118,17 @@ TEST(MatrixTests, InverseTest){
             << inv_basis[1];
     EXPECT_LE(inv_basis[2].GetDistance(Vec3(-2.5, 0.5, -1)), 1e-15)
             << inv_basis[2];
-    Basis_3x3 m2({2.0, -2.0, 1.0},
+    ONBasis_3x3 m2({2.0, -2.0, 1.0},
                   {2.0, 1.0, -2.0},
                   {2.0, 1.0, -2.0});
     ASSERT_DEATH(m2.GetInverse(), "Basis have zero deternminant!");
 }
 
 TEST(MatrixTests, TransposeTest){
-    Basis_3x3 m({0.6, 0.8, 0.0},
+    ONBasis_3x3 m({0.6, 0.8, 0.0},
                   {0.0, 0.6, -0.8},
                   {-1.0, 0.0, 0.0});
-    Basis_3x3 tr = m.Transpose();
+    ONBasis_3x3 tr = m.Transpose();
     std::vector<Vec3> tr_basis = tr.GetBasisCols();
     EXPECT_TRUE(tr_basis[0]==Vec3(0.6, 0.0, -1.0)) << tr_basis[0];
     EXPECT_TRUE(tr_basis[1]==Vec3(0.8, 0.6, 0.0)) << tr_basis[1];
@@ -137,7 +137,7 @@ TEST(MatrixTests, TransposeTest){
 
 
 TEST(MatrixTests, CoordinateTransitionTest){
-    Basis_3x3 m({1.0, 0.0, 0.0},
+    ONBasis_3x3 m({1.0, 0.0, 0.0},
                   {0.0, 1.0, 0.0},
                   {0.0, 0.0, -1.0});
     Vec3 tst(0.1, 0.2, 0.3);
@@ -150,7 +150,7 @@ TEST(MatrixTests, CoordinateTransitionTest){
 
 TEST(MatrixTests, TestGenerationFromZ){
     Vec3 new_z(0.1, 0.2, 0.3);
-    Basis_3x3 m(new_z);
+    ONBasis_3x3 m(new_z);
     std::vector<Vec3> basis = m.GetBasisCols();
 
     EXPECT_NEAR(0.0, basis[0].Dot(basis[1]), 1e-15);
