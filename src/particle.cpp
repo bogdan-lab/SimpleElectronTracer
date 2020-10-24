@@ -47,7 +47,7 @@ std::optional<Vec3> Particle::GetCrossPoint(const Surface& s) const {
     Vec3 cross_point = {pos_.GetX() + V_.GetX()*t,
                         pos_.GetY() + V_.GetY()*t,
                         pos_.GetZ() + V_.GetZ()*t};
-    VerifyPointInVolume(s, cross_point, 1e-6);
+    VerifyPointInVolume(s, cross_point);
     if(s.CheckIfPointOnSurface(cross_point)){
         return cross_point;
     }

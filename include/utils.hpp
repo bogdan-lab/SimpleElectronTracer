@@ -57,7 +57,7 @@ public:
     const Vec3& GetZVec() const;
 };
 
-void VerifyPointInVolume(const Surface& s, Vec3& point, double step=1e-6);
+void VerifyPointInVolume(const Surface& s, Vec3& point);
 
 std::vector<int> PrepareQuarterListForContour(const std::vector<Vec3>& contour,
                                               const Vec3& point);
