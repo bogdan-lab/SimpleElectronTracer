@@ -42,7 +42,7 @@ public:
             std::unique_ptr<Reflector> g_reflector, bool save_flag);
     void SaveSurfaceParticles() const;
     void SaveParticle(const Particle& pt);
-    std::optional<Vec3> CheckIfPointOnSurface(const Vec3& point) const;
+    bool CheckIfPointOnSurface(const Vec3& point) const;
     std::vector<Vec3> TranslateContourIntoBasis(const ONBasis_3x3& basis) const;
 
     Vec3 GetPointOnSurface() const;

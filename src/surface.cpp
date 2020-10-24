@@ -1,5 +1,4 @@
-﻿
-#include <utility>
+﻿#include <utility>
 #include <vector>
 #include <iostream>
 #include <list>
@@ -95,7 +94,7 @@ std::vector<Vec3> Surface::TranslateContourIntoBasis(
     return basis_contour;
 }
 
-std::optional<Vec3> Surface::CheckIfPointOnSurface(const Vec3& point) const{
+bool Surface::CheckIfPointOnSurface(const Vec3& point) const{
     //Due to the finite double precision we still expect that given point
     //will be not directly on the surface
     //anyway we will transform its and surface coordinates into the basis
@@ -113,11 +112,5 @@ std::optional<Vec3> Surface::CheckIfPointOnSurface(const Vec3& point) const{
                                                              basis_point);
     int winding_num = CalculateWindingNumber(quarters, basis_contour,
                                              basis_point);
-    if (winding_num%2==0){
-        return std::nullopt;
-    }
-    //Verify particle will stay inside the volume
-    return surf_basis.FromThisCoorsToOriginal({basis_point.GetX(),
-                                               basis_point.GetY(),
-                                               0.0});
+    return !(winding_num%2==0);
 }

@@ -76,63 +76,26 @@ TEST(Vec3Tests, TestCompare){
 }
 
 TEST(MatrixTests, GenerationTest){
-    Vec3 i(0.2, 0.5, 20.0);
-    Vec3 j(0.5, 6.5, 20.0);
-    Vec3 k(0.24, 0.5, 2.0);
+    Vec3 i(0.1, 0.0, 0.0);
+    Vec3 j(0.0, 25.0, 0.0);
+    Vec3 k(0.0, 0.0, -15.0);
     ONBasis_3x3 m(i, j, k);
-    std::vector<Vec3> basis = m.GetBasisCols();
-    EXPECT_TRUE(basis[0]==i);
-    EXPECT_TRUE(basis[1]==j);
-    EXPECT_TRUE(basis[2]==k);
-}
+    EXPECT_TRUE(m.GetXVec()==i.Norm());
+    EXPECT_TRUE(m.GetYVec()==j.Norm());
+    EXPECT_TRUE(m.GetZVec()==k.Norm());
+    auto gen_test = [](const Vec3& i, const Vec3& j, const Vec3& k){
+                            return ONBasis_3x3(i, j, k);
+                        };
+    Vec3 k_wrong(1.0, 2.0, 3.0);
+    EXPECT_DEATH(gen_test(i, j, k_wrong), "Basis is not orthogonal!");
 
-
-TEST(MatrixTests, NormalizationTest){
-    Vec3 i(0.2, 0.5, 20.0);
-    Vec3 j(0.5, 6.5, 20.0);
-    Vec3 k(0.24, 0.5, 2.0);
-    ONBasis_3x3 m(i, j, k);
-    m = m.Norm();
-    std::vector<Vec3> basis = m.GetBasisCols();
-    EXPECT_TRUE(basis[0]==i.Norm());
-    EXPECT_TRUE(basis[1]==j.Norm());
-    EXPECT_TRUE(basis[2]==k.Norm());
-}
-
-TEST(MatrixTests, DeterminantTest){
-     ONBasis_3x3 m({0.6, 0.8, 0.0},
-                  {0.0, 0.6, -0.8},
-                  {-1.0, 0.0, 0.0});
-    EXPECT_NEAR(0.64, m.GetDeterminant(), 1e-15);
-}
-
-TEST(MatrixTests, InverseTest){
-    ONBasis_3x3 m({0.2, 0.8, 0.0},
-                {0.0, 4.0, 4.0},
-                {-0.5, 0.0, 1.0});
-    ONBasis_3x3 inv = m.GetInverse();
-    std::vector<Vec3> inv_basis = inv.GetBasisCols();
-    EXPECT_LE(inv_basis[0].GetDistance(Vec3(-5, 1, -4)), 1e-15)
-            << inv_basis[0];
-    EXPECT_LE(inv_basis[1].GetDistance(Vec3(2.5, -0.25, 1)), 1e-15)
-            << inv_basis[1];
-    EXPECT_LE(inv_basis[2].GetDistance(Vec3(-2.5, 0.5, -1)), 1e-15)
-            << inv_basis[2];
-    ONBasis_3x3 m2({2.0, -2.0, 1.0},
-                  {2.0, 1.0, -2.0},
-                  {2.0, 1.0, -2.0});
-    ASSERT_DEATH(m2.GetInverse(), "Basis have zero deternminant!");
-}
-
-TEST(MatrixTests, TransposeTest){
-    ONBasis_3x3 m({0.6, 0.8, 0.0},
-                  {0.0, 0.6, -0.8},
-                  {-1.0, 0.0, 0.0});
-    ONBasis_3x3 tr = m.Transpose();
-    std::vector<Vec3> tr_basis = tr.GetBasisCols();
-    EXPECT_TRUE(tr_basis[0]==Vec3(0.6, 0.0, -1.0)) << tr_basis[0];
-    EXPECT_TRUE(tr_basis[1]==Vec3(0.8, 0.6, 0.0)) << tr_basis[1];
-    EXPECT_TRUE(tr_basis[2]==Vec3(0.0, -0.8, 0.0)) << tr_basis[2];
+    Vec3 x(1.0, 2.0, 3.0);
+    Vec3 y=x.Cross(Vec3(1.0, 0.0, 0.0));
+    Vec3 z = x.Cross(y);
+    ONBasis_3x3 m2(x,y,z);
+    EXPECT_TRUE(m2.GetXVec()==x.Norm());
+    EXPECT_TRUE(m2.GetYVec()==y.Norm());
+    EXPECT_TRUE(m2.GetZVec()==z.Norm());
 }
 
 
@@ -151,14 +114,15 @@ TEST(MatrixTests, CoordinateTransitionTest){
 TEST(MatrixTests, TestGenerationFromZ){
     Vec3 new_z(0.1, 0.2, 0.3);
     ONBasis_3x3 m(new_z);
-    std::vector<Vec3> basis = m.GetBasisCols();
+    Vec3 x = m.GetXVec();
+    Vec3 y = m.GetYVec();
+    Vec3 z = m.GetZVec();
 
-    EXPECT_NEAR(0.0, basis[0].Dot(basis[1]), 1e-15);
-    EXPECT_NEAR(0.0, basis[1].Dot(basis[2]), 1e-15);
-    EXPECT_NEAR(0.0, basis[0].Dot(basis[2]), 1e-15);
+    EXPECT_NEAR(0.0, x.Dot(y), 1e-15);
+    EXPECT_NEAR(0.0, y.Dot(z), 1e-15);
+    EXPECT_NEAR(0.0, x.Dot(z), 1e-15);
 
     Vec3 z_orig(0.0, 0.0, 1.0);
-    m = m.Norm();
     Vec3 z_trans = m.ApplyToVec(z_orig);
     new_z = new_z.Norm();
     //Check if normed basis generated according to Zvec will transform
@@ -166,6 +130,22 @@ TEST(MatrixTests, TestGenerationFromZ){
     EXPECT_NEAR(new_z.GetX(), z_trans.GetX(), 1e-15);
     EXPECT_NEAR(new_z.GetY(), z_trans.GetY(), 1e-15);
     EXPECT_NEAR(new_z.GetZ(), z_trans.GetZ(), 1e-15);
+}
+
+TEST(MatrixTests, FromOriginalCoorsToThisAndBack){
+    Vec3 new_x(-1.0, 0.0, 0.0);
+    Vec3 new_y(0.0, -1.0, 0.0);
+    Vec3 new_z(0.0, 0.0, -1.0);
+    ONBasis_3x3 m(new_x, new_y, new_z);
+    Vec3 tst(1.0, 2.0, 3.0);
+    Vec3 tst_basis = m.FromOriginalCoorsToThis(tst);
+    EXPECT_EQ(tst_basis.GetX(), -tst.GetX());
+    EXPECT_EQ(tst_basis.GetY(), -tst.GetY());
+    EXPECT_EQ(tst_basis.GetZ(), -tst.GetZ());
+    Vec3 tst_back = m.FromThisCoorsToOriginal(tst_basis);
+    EXPECT_EQ(tst_back.GetX(), tst.GetX());
+    EXPECT_EQ(tst_back.GetY(), tst.GetY());
+    EXPECT_EQ(tst_back.GetZ(), tst.GetZ());
 }
 
 
@@ -186,6 +166,7 @@ TEST(UtilsTests, VerifyPointOnSurfaceTest){
     EXPECT_EQ(point2.GetY(), 0.3);
     EXPECT_EQ(point2.GetZ(), 0.4);
 }
+
 
 TEST(ParticleTests, ParticleGenerationTest1){
         Particle pt;
@@ -331,6 +312,22 @@ TEST(SurfaceTests, GetPointOnSurfaceTest){
     Surface::SurfaceCoeficients Sc=s.GetSurfaceCoefficients();
     EXPECT_EQ(p.GetX()*Sc.A_ + p.GetY()*Sc.B_ + p.GetZ()*Sc.C_ + Sc.D_, 0.0);
 }
+
+TEST(SurfaceTests, CheckIfPointOnSurface){
+    std::string name = "test_surface";
+    std::vector<Vec3> contour {Vec3(1.0, 0.0, 0.0),
+                               Vec3(1.0, 0.0, 1.0),
+                               Vec3(1.0, 1.0, 1.0),
+                               Vec3(1.0, 1.0, 0.0)};
+    Surface s(name, contour, std::make_unique<MirrorReflector>(0.0), false);
+    Vec3 point(1.0, 0.5, 0.7);
+    EXPECT_TRUE(s.CheckIfPointOnSurface(point));
+    Vec3 point1(1.0+0.1, 0.5, 0.7);
+    EXPECT_TRUE(s.CheckIfPointOnSurface(point1));
+    Vec3 point2(1.0, 12.0, 0.5);
+    EXPECT_FALSE(s.CheckIfPointOnSurface(point2));
+}
+
 
 int main(int argc, char* argv[]){
     testing::InitGoogleTest(&argc, argv);

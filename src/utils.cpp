@@ -80,9 +80,15 @@ void VerifyPointInVolume(const Surface& s, Vec3& point, double step){
 }
 
 ONBasis_3x3::ONBasis_3x3(const Vec3& i, const Vec3& j, const Vec3& k){
-    m_.push_back(i.Norm());
-    m_.push_back(j.Norm());
-    m_.push_back(k.Norm());
+    if(i.Dot(j)==0 && j.Dot(k)==0 && i.Dot(k)==0){
+        m_.push_back(i.Norm());
+        m_.push_back(j.Norm());
+        m_.push_back(k.Norm());
+    }
+    else{
+        fprintf(stderr, "Basis is not orthogonal!\n");
+        exit(1);
+    }
 }
 
 
@@ -120,28 +126,29 @@ Vec3 ONBasis_3x3::FromThisCoorsToOriginal(const Vec3& vec) const{
            m_[2].Times(vec.GetZ());
 }
 
+int GetQuarter(const Vec3& point, const Vec3& node){
+    if(node.GetX()>point.GetX() && node.GetY()>=point.GetY()){
+        return 0;
+    }
+    if(node.GetX()<=point.GetX() && node.GetY()>point.GetY()){
+        return 1;
+    }
+    if(node.GetX()<point.GetX() && node.GetY()<=point.GetY()){
+        return 2;
+    }
+    if(node.GetX()>=point.GetX() && node.GetY()<point.GetY()){
+        return 3;
+    }
+    fprintf(stderr, "INCORRECT QUARTER CALCULATION!");
+    exit(1);
+}
+
+
 std::vector<int> PrepareQuarterListForContour(const std::vector<Vec3> &contour,
                                               const Vec3 &point){
     std::vector<int> quarters(contour.size(), 0);
     for(size_t i=0; i<contour.size(); i++){
-        if(contour[i].GetX()>point.GetX() &&
-                contour[i].GetY()>=point.GetY()){
-            quarters[i] = 0;
-        }
-        if(contour[i].GetX()<=point.GetX() &&
-                contour[i].GetY()>point.GetY()){
-            quarters[i] = 1;
-        }
-        if(contour[i].GetX()<point.GetX() &&
-                contour[i].GetY()<=point.GetY()){
-            quarters[i] = 2;
-        }
-        if(contour[i].GetX()>=point.GetX() &&
-                contour[i].GetY()<point.GetY()){
-            quarters[i] = 3;
-        }
-        fprintf(stderr, "INCORRECT QUARTER CALCULATION!");
-        exit(1);
+        quarters[i] = GetQuarter(point, contour[i]);
     }
     return quarters;
 }
@@ -178,7 +185,7 @@ int CalculateWindingNumber(const std::vector<int>& quarters,
             default:{
                 fprintf(stderr, "Something went wrong in count algo");
                 exit(1);
-             }
+            }
         }
     }
     winding_num/=4;
