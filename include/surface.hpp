@@ -1,4 +1,4 @@
-#ifndef SURFACE_HPP
+﻿#ifndef SURFACE_HPP
 #define SURFACE_HPP
 
 #include <string>
@@ -16,11 +16,6 @@ class Particle;
 
 class Surface{
 public:
-    struct Boundary{
-        double min_;
-        double max_;
-    };
-
     struct SurfaceCoeficients{
         //Ax + By + Cz + D = 0
         double A_;
@@ -32,37 +27,31 @@ public:
 private:
     std::list<Particle> stat_;
     bool save_stat_;             //flag for saving statistics
-    std::vector<Vector> contour_; 	//points which build the surface contour
+    std::vector<Vec3> contour_; 	//points which build the surface contour
     std::string surface_name_;
     std::unique_ptr<Reflector> reflector_;
     SurfaceCoeficients coefs_;
-    Vector normal_;
-    //TODO Redo into fully plygonal representaiotn
-    Boundary x_bnd_;
-    Boundary y_bnd_;
-    Boundary z_bnd_;
+    Vec3 normal_;
 
-    static Boundary GetBoundary(const std::vector<Vector>& ctr, const char axis);
     static SurfaceCoeficients CalcSurfaceCoefficients(
-                                              const std::vector<Vector> contour);
+                                              const std::vector<Vec3> contour);
 public:
 
-
-    Surface(std::string g_name, std::vector<Vector> g_contour,
+    Surface() = delete;
+    Surface(std::string g_name, std::vector<Vec3> g_contour,
             std::unique_ptr<Reflector> g_reflector, bool save_flag);
-    void SaveSurfaceParticles(std::ofstream& out) const;
+    void SaveSurfaceParticles() const;
     void SaveParticle(const Particle& pt);
-    bool CheckIfPointOnSurface(const Vector& point) const;
+    bool CheckIfPointOnSurface(const Vec3& point) const;
+    std::vector<Vec3> TranslateContourIntoBasis(const ONBasis_3x3& basis) const;
 
-    const std::vector<Vector>& GetContour() const ;
-    const Vector& GetNormal() const;
+    Vec3 GetPointOnSurface() const;
+    const std::vector<Vec3>& GetContour() const ;
+    const Vec3& GetNormal() const;
     bool IsSaveStat() const;
     const Reflector* GetReflector() const ;
     const std::string& GetName() const ;
     const SurfaceCoeficients& GetSurfaceCoefficients() const ;
-    const Boundary& GetXBnd() const ;
-    const Boundary& GetYBnd() const ;
-    const Boundary& GetZBnd() const ;
 };
 
 
