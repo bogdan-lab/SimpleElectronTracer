@@ -21,6 +21,8 @@ private:
 public:
     Vec3(const double x, const double y, const double z):
         x_(x), y_(y), z_(z) {}
+    Vec3(const std::vector<double>& vec):
+        x_(vec[0]), y_(vec[1]), z_(vec[2]) {}
     Vec3(const Vec3& start_point, const Vec3& end_point);
     Vec3()=default;
 

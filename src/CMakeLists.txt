@@ -1,4 +1,4 @@
-
+﻿
 add_library(tracer_lib STATIC
 	    particle.cpp
 	    reflector.cpp
@@ -11,5 +11,7 @@ add_executable(pt_tracer
 		main.cpp		
 )
 
-target_link_libraries(pt_tracer PRIVATE tracer_lib)
+target_link_libraries(pt_tracer PRIVATE tracer_lib
+                                        CONAN_PKG::nlohmann_json
+                                        CONAN_PKG::lyra)
 
