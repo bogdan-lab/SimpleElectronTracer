@@ -58,8 +58,23 @@ std::vector<Surface> load_geometry(const json& json_data){
     return walls;
 }
 
-int main(){
-    json json_data = load_json_config("config.json");
+int main(int argc, const char ** argv){
+    std::string config_file = "NO_FILE_WAS_GIVEN";
+    bool show_help = false;
+    auto cli = lyra::cli()
+            | lyra::opt(config_file, "config")["-c"]["--config"]
+                ("Path to the json config file [no default value!]")
+            | lyra::help(show_help);
+    auto cmd_parse = cli.parse({argc, argv});
+    if(show_help){
+        std::cout << cli;
+        return 0;
+    }
+    if (!cmd_parse){
+        std::cerr << cmd_parse.errorMessage() << "\n";
+    }
+
+    json json_data = load_json_config(config_file);
     Background gas = load_background(json_data);
     std::vector<Surface> walls = load_geometry(json_data);
     size_t pt_num = json_data["particles"]["number"].get<size_t>();
