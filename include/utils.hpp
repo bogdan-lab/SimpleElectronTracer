@@ -50,7 +50,7 @@ private:
 public:
     ONBasis_3x3() = delete;
     ONBasis_3x3(const Vec3& i, const Vec3& j, const Vec3& k);
-    ONBasis_3x3(const Vec3& given_z);
+    explicit ONBasis_3x3(const Vec3& given_z);
     Vec3 ApplyToVec(const Vec3& vec) const ;
     Vec3 FromOriginalCoorsToThis(const Vec3& vec) const;
     Vec3 FromThisCoorsToOriginal(const Vec3& vec) const;

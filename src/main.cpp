@@ -81,18 +81,26 @@ int main(int argc, const char ** argv){
     Vec3 source_point(json_data["particles"]["source_point"].get<std::vector<double>>());
     Vec3 direction(json_data["particles"]["direction"].get<std::vector<double>>());
     bool is_dir_random = json_data["particles"]["is_dir_random"].get<bool>();
-    //TODO make use is_dir_random -- don like checking its value each cycle...
-    //RUNNING PARTICLES
+
     std::mt19937 rnd_gen;
     rnd_gen.seed(static_cast<uint>(time(0)));
+
+    auto pt_generator = [&](std::mt19937& rnd_gen){
+        if (is_dir_random){
+            return Particle(source_point, direction, rnd_gen);
+        } else {
+            return Particle(source_point, direction);
+        }
+    };
+    //************MAIN CYLE******************
     for(size_t i=0; i<pt_num; i++){
-        Particle pt(source_point, direction);
-        pt.Trace(walls, gas, rnd_gen);
-        if((i+1)%pt_num==0){
+        pt_generator(rnd_gen)
+                .Trace(walls, gas, rnd_gen);
+        if((i+1)%(pt_num/10)==0){
             printf("%.2lf %%\n" , static_cast<double>(100.0*i/pt_num));
         }
     }
-
+    //***********CYCLE END*******************
     std::for_each(walls.cbegin(), walls.cend(), [](const Surface& s){
         s.SaveSurfaceParticles();
     });

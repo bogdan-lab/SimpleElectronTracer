@@ -1,0 +1,170 @@
+CONFIG
+{
+	"gas" : {
+		"sigma" : 2e-16,
+		"temperature" : 300.0,
+		"pressure" : 5.0
+	},
+	"particles" : {
+		"number" : 1000000,
+		"source_point" : [0.1, 0.5, 0.5],
+		"direction" : [1.0, 0.0, 0.0],
+		"is_dir_random" : false
+	},
+	"geometry" : [
+		{
+		"name" : "surface_0_YZ",
+		"reflector_type" : "mirror",
+		"reflection_coefficient" : 0.0,
+		"collect_statistics" : true,
+		"contour" : [
+			[0.0, 0.0, 0.0],
+			[0.0, 1.0, 0.0],
+			[0.0, 1.0, 1.0],
+			[0.0, 0.0, 1.0]]
+		},
+		{
+		"name" : "surface_1_XZ",
+		"reflector_type" : "cosine",
+		"reflection_coefficient" : 0.0,
+		"collect_statistics" : true,
+		"contour" : [
+			[0.0, 0.0, 0.0],
+			[0.0, 0.0, 1.0],
+			[1.0, 0.0, 1.0],
+			[1.0, 0.0, 0.0]]
+		},
+		{
+		"name" : "surface_2_XY",
+		"reflector_type" : "cosine",
+		"reflection_coefficient" : 0.0,
+		"collect_statistics" : true,
+		"contour" : [
+			[0.0, 0.0, 0.0],
+			[1.0, 0.0, 0.0],
+			[1.0, 1.0, 0.0],
+			[0.0, 1.0, 0.0]]
+		},
+		{
+		"name" : "surface_3_YZ",
+		"reflector_type" : "mirror",
+		"reflection_coefficient" : 0.0,
+		"collect_statistics" : true,
+		"contour" : [
+			[1.0, 0.0, 0.0],
+			[1.0, 0.0, 1.0],
+			[1.0, 1.0, 1.0],
+			[1.0, 1.0, 0.0]]
+		},
+		{
+		"name" : "surface_4_XZ",
+		"reflector_type" : "cosine",
+		"reflection_coefficient" : 0.0,
+		"collect_statistics" : true,
+		"contour" : [
+			[0.0, 1.0, 0.0],
+			[1.0, 1.0, 0.0],
+			[1.0, 1.0, 1.0],
+			[0.0, 1.0, 1.0]]
+		},
+		{
+		"name" : "surface_5_XY",
+		"reflector_type" : "cosine",
+		"reflection_coefficient" : 0.0,
+		"collect_statistics" : true,
+		"contour" : [
+			[0.0, 0.0, 1.0],
+			[0.0, 1.0, 1.0],
+			[1.0, 1.0, 1.0],
+			[1.0, 0.0, 1.0]]
+		}
+	]
+}
+
+
+
+*** Preparation or producing each step ***
+1) 1000000 particles all statistics is saved
+PRODUCING EACH STEP
+real	0m3,012s
+user	0m1,801s
+sys	0m0,130s
+
+PREPARE INTO VECTOR
+real	0m2,961s
+user	0m1,747s
+sys	0m0,197s
+
+PREPARE INTO LIST
+real	0m2,887s
+user	0m1,870s
+sys	0m0,133s
+
+
+2) Checking larger particle number (x10), turned off statistic saving
+WITH LIST
+real	0m6,447s
+user	0m6,211s
+sys	0m0,237s
+
+PRODUCING EACH STEP
+real	0m5,666s
+user	0m5,665s
+sys	0m0,001s
+
+**************************************************
+*! PRODUCING EACH STEP IS FASTER ~12%  -- STACK??*
+**************************************************
+3) x100 (compare to (1)) particles, no saving
+PRODUCING EACH STEP
+real	0m56,453s
+user	0m56,447s
+sys	0m0,004s
+
+WITH LIST
+memory problems
+
+
+
+
+
+
+*** checking which particle to generate each step ***
+particle number 100000000;  not saving statistics
+
+PUT BOTH CONSTRUCTORS INTO LAMBDA WITH IF
+real	0m56,319s
+user	0m56,317s
+sys	0m0,001s
+
+IF CLAUS OUTSIDE THE LAMBDA
+real	0m56,425s
+user	0m56,416s
+sys	0m0,005s
+
+**********************************
+*NO INFLUENCE for now leave it so*
+**********************************
+
+
+
+Seems that randomizing initial particle velocity doubles time... 
+Why so bad?
+sin() cos() --?
+random itself --?
+generating basis has a lot of Vec3 copying --? 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

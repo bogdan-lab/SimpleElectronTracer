@@ -21,7 +21,7 @@ class MirrorReflector : public Reflector {
 private:
     double reflection_coefficient_;
 public:
-    MirrorReflector(const double val): reflection_coefficient_(val) {}
+    explicit MirrorReflector(const double val): reflection_coefficient_(val) {}
     std::optional<Vec3> ReflectParticle(const Particle &pt,
                   const Vec3& normal, std::mt19937& rnd_gen) const override;
 };
@@ -30,7 +30,7 @@ class LambertianReflector : public Reflector {
 private:
     double reflection_coefficient_;
 public:
-    LambertianReflector(const double val): reflection_coefficient_(val) {}
+    explicit LambertianReflector(const double val): reflection_coefficient_(val) {}
     std::optional<Vec3> ReflectParticle(const Particle &pt,
                  const Vec3& normal, std::mt19937& rnd_gen) const override;
 };
