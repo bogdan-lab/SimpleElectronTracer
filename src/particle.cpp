@@ -94,7 +94,7 @@ Vec3 Particle::GetRandomVel(const Vec3& direction,
 }
 
 
-bool Particle::MakeStep(std::vector<Surface>& walls,
+int Particle::Trace(std::vector<Surface>& walls,
                         const Background& gas, std::mt19937 &rnd_gen){
     double min_dist = GetDistanceInGas(gas, rnd_gen);
     size_t wall_id = 0;
@@ -111,7 +111,7 @@ bool Particle::MakeStep(std::vector<Surface>& walls,
     }
     if(colide_in_gas_flag){
         MakeGasCollision(min_dist, rnd_gen);
-        return true;
+        return Trace(walls, gas, rnd_gen);
     }
     //Here we collide with surface --> can die
     pos_ = point_on_surf;
@@ -120,13 +120,13 @@ bool Particle::MakeStep(std::vector<Surface>& walls,
                                            walls[wall_id].GetNormal(), rnd_gen);
     if(surf_refl){
         V_ = surf_refl.value();
-        return true;
+        return Trace(walls, gas, rnd_gen);
     }
     //Here particle is dead --> save its position
     if (walls[wall_id].IsSaveStat()){
         walls[wall_id].SaveParticle(*this);
     }
-    return false;
+    return 1;
 }
 
 

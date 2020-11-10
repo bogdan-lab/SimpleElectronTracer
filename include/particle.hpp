@@ -27,7 +27,7 @@ public:
                             std::mt19937& rnd_gen) const;
     void MakeGasCollision(const double distance,
                           std::mt19937& rnd_gen);
-    bool MakeStep(std::vector<Surface>& walls, const Background& gas,
+    int Trace(std::vector<Surface>& walls, const Background& gas,
                   std::mt19937& rnd_gen);
     Vec3 GetRandomVel(const Vec3& direction, std::mt19937& rnd_gen) const;
 

@@ -87,8 +87,8 @@ int main(int argc, const char ** argv){
     rnd_gen.seed(static_cast<uint>(time(0)));
     for(size_t i=0; i<pt_num; i++){
         Particle pt(source_point, direction);
-        while(pt.MakeStep(walls, gas, rnd_gen)){}
-        if((i+1)%100000==0){
+        pt.Trace(walls, gas, rnd_gen);
+        if((i+1)%pt_num==0){
             printf("%.2lf %%\n" , static_cast<double>(100.0*i/pt_num));
         }
     }
