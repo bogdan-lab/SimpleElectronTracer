@@ -33,33 +33,37 @@ Vec3 Vec3::Cross(const Vec3& rhs) const{
 double Vec3::Length2() const {return x_*x_ + y_*y_ + z_*z_;}
 double Vec3::Length() const {return sqrt(Length2());}
 
-Vec3 Vec3::Norm() const {
+Vec3& Vec3::Norm() {
     double l = Length();
-    return Vec3(x_/l, y_/l, z_/l);
+    x_ /= l;
+    y_ /= l;
+    z_ /= l;
+    return *this;
 }
 
-Vec3 Vec3::Times(const double n) const{return Vec3(n*x_, n*y_, n*z_);}
-
-Vec3 operator+(const Vec3& lhs, const Vec3& rhs){
-    return Vec3(lhs.GetX() + rhs.GetX(),
-                  lhs.GetY() + rhs.GetY(),
-                  lhs.GetZ() + rhs.GetZ());
+Vec3 Vec3::Times(const double d) const{
+    return Vec3(x_*d, y_*d, z_*d);
 }
 
-Vec3 operator-(const Vec3& lhs, const Vec3& rhs){
-    return Vec3(lhs.GetX() - rhs.GetX(),
-                  lhs.GetY() - rhs.GetY(),
-                  lhs.GetZ() - rhs.GetZ());
+Vec3 Vec3::operator +(const Vec3& other) const {
+    return Vec3(this->x_ + other.x_,
+                this->y_ + other.y_,
+                this->z_ + other.z_);
 }
 
-bool operator==(const Vec3& lhs, const Vec3& rhs){
-    return lhs.GetX()==rhs.GetX() &&
-           lhs.GetY()==rhs.GetY() &&
-           lhs.GetZ()==rhs.GetZ();
+Vec3 Vec3::operator -(const Vec3& other) const {
+    return Vec3(this->x_ - other.x_,
+                this->y_ - other.y_,
+                this->z_ - other.z_);
 }
 
-std::ostream& operator<<(std::ostream& out, const Vec3& vec){
-    out << vec.GetX() << "\t" << vec.GetY() << "\t" << vec.GetZ();
+bool Vec3::operator ==(const Vec3& other) const {
+    return this->x_==other.x_ && this->y_ == other.y_ && this->z_ == other.z_;
+}
+
+
+std::ostream& Vec3::operator<<(std::ostream& out) const {
+    out << x_ << "\t" << y_ << "\t" << z_;
     return out;
 }
 
@@ -79,7 +83,7 @@ void VerifyPointInVolume(const Surface& s, Vec3& point){
     }
 }
 
-ONBasis_3x3::ONBasis_3x3(const Vec3& i, const Vec3& j, const Vec3& k){
+ONBasis_3x3::ONBasis_3x3(Vec3 i, Vec3 j,Vec3 k){
     if(i.Dot(j)==0 && j.Dot(k)==0 && i.Dot(k)==0){
         m_.push_back(i.Norm());
         m_.push_back(j.Norm());
@@ -92,9 +96,9 @@ ONBasis_3x3::ONBasis_3x3(const Vec3& i, const Vec3& j, const Vec3& k){
 }
 
 
-ONBasis_3x3::ONBasis_3x3(const Vec3& given_z){
+ONBasis_3x3::ONBasis_3x3(Vec3 new_z){
     m_.reserve(3);
-    Vec3 new_z = given_z.Norm();
+    new_z.Norm();
     Vec3 tmp_cross_x = new_z.Cross(Vec3(1.0, 0.0, 0.0));
     Vec3 tmp_cross_y = new_z.Cross(Vec3(0.0, 1.0, 0.0));
     Vec3 new_y = tmp_cross_x.Length2()>tmp_cross_y.Length2() ?

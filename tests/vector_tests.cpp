@@ -56,8 +56,8 @@ TEST(Vec3Tests, GetDistanceTest){
 }
 
 TEST(Vec3Tests, NormTest){
-    Vec3 v(1.0, 2.0, -3.0);
-    Vec3 res = v.Norm();
+    Vec3 res(1.0, 2.0, -3.0);
+    res.Norm();
     EXPECT_EQ(res.GetX(), 1.0/std::sqrt(14.0));
     EXPECT_EQ(res.GetY(), 2.0/std::sqrt(14.0));
     EXPECT_EQ(res.GetZ(), -3.0/std::sqrt(14.0));
@@ -69,4 +69,14 @@ TEST(Vec3Tests, TestCompare){
     Vec3 rhs2(-2.0, 15.0, 9);
     EXPECT_TRUE(lhs==rhs1);
     EXPECT_FALSE(lhs==rhs2);
+}
+
+
+TEST(Vec3Tests, Arithmetic){
+    Vec3 lhs(1.0, 2.0, 3.0);
+    Vec3 rhs(25.0, 17.0, 10.0);
+    EXPECT_TRUE(lhs+rhs == Vec3(26.0, 19.0, 13.0));
+    EXPECT_TRUE(lhs+rhs == rhs+lhs);
+    EXPECT_TRUE(rhs-lhs == Vec3(24.0, 15.0, 7.0));
+    EXPECT_TRUE(lhs-rhs == (rhs-lhs).Times(-1));
 }

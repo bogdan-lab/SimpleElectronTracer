@@ -63,7 +63,7 @@ TEST(ParticleTests, MakeGasCollisionTest){
     pt.MakeGasCollision(distance, rnd_gen);
     EXPECT_EQ(pt.GetVolCount(), 1);
     EXPECT_EQ(pt.GetSurfCount(), 0);
-    dir = dir.Norm();
+    dir.Norm();
     EXPECT_NEAR(pt.GetPosition().GetX(), pos.GetX() + distance*dir.GetX(), 1e-15);
     EXPECT_NEAR(pt.GetPosition().GetY(), pos.GetY() + distance*dir.GetY(), 1e-15);
     EXPECT_NEAR(pt.GetPosition().GetZ(), pos.GetZ() + distance*dir.GetZ(), 1e-15);

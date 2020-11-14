@@ -7,19 +7,15 @@
 
 
 
-Particle::Particle(const Vec3& given_p, const Vec3& given_v){
-    pos_ = given_p;
-    V_ = given_v.Norm();
-    vol_count_ = 0;
-    surf_count_ = 0;
+Particle::Particle(const Vec3& given_p, const Vec3& given_v):
+pos_(given_p), V_(given_v), vol_count_(0), surf_count_(0){
+    V_.Norm();
 }
 
 Particle::Particle(const Vec3 &given_p, const Vec3& direction,
-                   std::mt19937& rnd_gen){
-    pos_ = given_p;
-    V_ = GetRandomVel(direction, rnd_gen);
-    vol_count_ = 0;
-    surf_count_ = 0;
+                   std::mt19937& rnd_gen):
+pos_(given_p), vol_count_(0), surf_count_(0){
+    V_ = GetRandomVel(direction, rnd_gen).Norm();
 }
 
 const Vec3& Particle::GetPosition() const{return pos_;}

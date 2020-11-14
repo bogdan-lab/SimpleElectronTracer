@@ -16,7 +16,7 @@ TEST(ReflectorTests, MirrorReflectorTest){
         MirrorReflector test(1.0);
         auto res = test.ReflectParticle(pt, normal, rnd_gen);
         EXPECT_TRUE(res.has_value());
-        dir = dir.Norm();
+        dir.Norm();
         EXPECT_NEAR(res->GetX(), dir.GetX(), 1e-15);
         EXPECT_NEAR(res->GetY(), dir.GetY(), 1e-15);
         EXPECT_NEAR(res->GetZ(), -dir.GetZ(), 1e-15);
@@ -38,7 +38,7 @@ TEST(ReflectorTests, LambertianReflectorTest){
         LambertianReflector test(1.0);
         auto res = test.ReflectParticle(pt, normal, rnd_gen);
         EXPECT_TRUE(res.has_value());
-        dir = dir.Norm();
+        dir.Norm();
         EXPECT_GE(res->Dot(normal), 0);
         EXPECT_LE(res->Dot(dir), 0);
     }

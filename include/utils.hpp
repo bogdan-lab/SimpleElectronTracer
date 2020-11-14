@@ -34,23 +34,23 @@ public:
     Vec3 Cross(const Vec3& rhs) const;
     double Length2() const;
     double Length() const;
-    Vec3 Norm() const;
-    Vec3 Times(const double n) const;
+    Vec3& Norm();
+    Vec3 Times(const double d) const ;
     double GetDistance(const Vec3& end) const;
-};
 
-Vec3 operator+(const Vec3& lhs, const Vec3& rhs);
-Vec3 operator-(const Vec3& lhs, const Vec3& rhs);
-bool operator==(const Vec3& lhs, const Vec3& rhs);
-std::ostream& operator<<(std::ostream& out, const Vec3& vec);
+    Vec3 operator +(const Vec3& other) const;
+    Vec3 operator -(const Vec3& other) const;
+    bool operator ==(const Vec3& other) const;
+    std::ostream& operator <<(std::ostream& out) const ;
+};
 
 class ONBasis_3x3{
 private:
     std::vector<Vec3> m_;
 public:
     ONBasis_3x3() = delete;
-    ONBasis_3x3(const Vec3& i, const Vec3& j, const Vec3& k);
-    explicit ONBasis_3x3(const Vec3& given_z);
+    ONBasis_3x3(Vec3 i, Vec3 j, Vec3 k);
+    explicit ONBasis_3x3(Vec3 given_z);
     Vec3 ApplyToVec(const Vec3& vec) const ;
     Vec3 FromOriginalCoorsToThis(const Vec3& vec) const;
     Vec3 FromThisCoorsToOriginal(const Vec3& vec) const;
