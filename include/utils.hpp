@@ -46,7 +46,9 @@ public:
 
 class ONBasis_3x3{
 private:
-    std::vector<Vec3> m_;
+    Vec3 i_;
+    Vec3 j_;
+    Vec3 k_;
 public:
     ONBasis_3x3() = delete;
     ONBasis_3x3(Vec3 i, Vec3 j, Vec3 k);

@@ -83,51 +83,48 @@ void VerifyPointInVolume(const Surface& s, Vec3& point){
     }
 }
 
-ONBasis_3x3::ONBasis_3x3(Vec3 i, Vec3 j,Vec3 k){
-    if(i.Dot(j)==0 && j.Dot(k)==0 && i.Dot(k)==0){
-        m_.push_back(i.Norm());
-        m_.push_back(j.Norm());
-        m_.push_back(k.Norm());
-    }
-    else{
+ONBasis_3x3::ONBasis_3x3(Vec3 i, Vec3 j,Vec3 k):
+    i_(std::move(i)), j_(std::move(j)), k_(std::move(k)){
+    if(i.Dot(j)!=0 || j.Dot(k)!=0 || i.Dot(k)!=0){
         fprintf(stderr, "Basis is not orthogonal!\n");
         exit(1);
     }
+    i_.Norm();
+    j_.Norm();
+    k_.Norm();
 }
 
 
-ONBasis_3x3::ONBasis_3x3(Vec3 new_z){
-    m_.reserve(3);
-    new_z.Norm();
-    Vec3 tmp_cross_x = new_z.Cross(Vec3(1.0, 0.0, 0.0));
-    Vec3 tmp_cross_y = new_z.Cross(Vec3(0.0, 1.0, 0.0));
-    Vec3 new_y = tmp_cross_x.Length2()>tmp_cross_y.Length2() ?
+ONBasis_3x3::ONBasis_3x3(Vec3 new_z): k_(std::move(new_z)){
+    Vec3 tmp_cross_x = k_.Cross(Vec3(1.0, 0.0, 0.0));
+    Vec3 tmp_cross_y = k_.Cross(Vec3(0.0, 1.0, 0.0));
+    j_ = tmp_cross_x.Length2()>tmp_cross_y.Length2() ?
                 tmp_cross_x : tmp_cross_y;
-    Vec3 new_x = new_y.Cross(new_z);
-    m_.push_back(new_x.Norm());
-    m_.push_back(new_y.Norm());
-    m_.push_back(std::move(new_z));
+    i_ = j_.Cross(k_);
+    i_.Norm();
+    j_.Norm();
+    k_.Norm();
 }
 
-const Vec3& ONBasis_3x3::GetXVec() const{return m_[0];}
-const Vec3& ONBasis_3x3::GetYVec() const{return m_[1];}
-const Vec3& ONBasis_3x3::GetZVec() const{return m_[2];}
+const Vec3& ONBasis_3x3::GetXVec() const{return i_;}
+const Vec3& ONBasis_3x3::GetYVec() const{return j_;}
+const Vec3& ONBasis_3x3::GetZVec() const{return k_;}
 
 
 Vec3 ONBasis_3x3::ApplyToVec(const Vec3& vec) const {
-    return m_[0].Times(vec.GetX()) +
-           m_[1].Times(vec.GetY()) +
-           m_[2].Times(vec.GetZ());
+    return i_.Times(vec.GetX()) +
+           j_.Times(vec.GetY()) +
+           k_.Times(vec.GetZ());
 }
 
 Vec3 ONBasis_3x3::FromOriginalCoorsToThis(const Vec3& vec) const {
-    return {vec.Dot(m_[0]), vec.Dot(m_[1]), vec.Dot(m_[2])};
+    return {vec.Dot(i_), vec.Dot(j_), vec.Dot(k_)};
 }
 
 Vec3 ONBasis_3x3::FromThisCoorsToOriginal(const Vec3& vec) const{
-    return m_[0].Times(vec.GetX()) +
-           m_[1].Times(vec.GetY()) +
-           m_[2].Times(vec.GetZ());
+    return i_.Times(vec.GetX()) +
+           j_.Times(vec.GetY()) +
+           k_.Times(vec.GetZ());
 }
 
 int GetQuarter(const Vec3& point, const Vec3& node){
