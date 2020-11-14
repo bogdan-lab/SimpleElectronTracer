@@ -147,6 +147,12 @@ sys	0m0,005s
 **********************************
 
 
+*** Small refactor and chage Norm to this format has almost no effect (as expected) ***
+particle number 100000000;  not saving statistics
+
+real	0m54,188s
+user	0m54,184s
+sys	0m0,000s
 
 Seems that randomizing initial particle velocity doubles time... 
 Why so bad?
