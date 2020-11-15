@@ -5,6 +5,7 @@
 #include <random>
 #include <utility>
 #include <optional>
+#include <functional>
 
 #include "surface.hpp"
 #include "utils.hpp"
@@ -22,6 +23,10 @@ public:
     Particle(const Vec3& given_p, const Vec3& given_v);
     Particle(const Vec3& given_p, const Vec3& direction,
                                                      std::mt19937& rnd_gen);
+
+    using GenFunc = std::function<Particle(const Vec3&, const Vec3&, std::mt19937&)>;
+    static GenFunc GetGenerator(bool is_rand_dir);
+
     std::optional<Vec3> GetCrossPoint(const Surface& s) const;
     double GetDistanceInGas(const Background& gas,
                             std::mt19937& rnd_gen) const;

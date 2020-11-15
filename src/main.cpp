@@ -85,16 +85,10 @@ int main(int argc, const char ** argv){
     std::mt19937 rnd_gen;
     rnd_gen.seed(static_cast<uint>(time(0)));
 
-    auto pt_generator = [&](std::mt19937& rnd_gen){
-        if (is_dir_random){
-            return Particle(source_point, direction, rnd_gen);
-        } else {
-            return Particle(source_point, direction);
-        }
-    };
+    auto pt_generator = Particle::GetGenerator(is_dir_random);
     //************MAIN CYLE******************
     for(size_t i=0; i<pt_num; i++){
-        pt_generator(rnd_gen)
+          pt_generator(source_point, direction, rnd_gen)
                 .Trace(walls, gas, rnd_gen);
         if((i+1)%(pt_num/10)==0){
             printf("%.2lf %%\n" , static_cast<double>(100.0*i/pt_num));

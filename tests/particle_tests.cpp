@@ -71,3 +71,18 @@ TEST(ParticleTests, MakeGasCollisionTest){
     EXPECT_NE(dir.GetY(), pt.GetDirection().GetY());
     EXPECT_NE(dir.GetZ(), pt.GetDirection().GetZ());
 }
+
+
+TEST(ParticleTests, GeneratorTest){
+    auto rand_pt_gen = Particle::GetGenerator(true);
+    auto stat_pt_gen = Particle::GetGenerator(false);
+    std::mt19937 rnd_gen;
+    rnd_gen.seed(42);
+    Vec3 start_point(0, 1, 2);
+    Vec3 direction(5,6,7);
+    Particle stat_pt = stat_pt_gen(start_point, direction, rnd_gen);
+    EXPECT_TRUE(stat_pt.GetDirection()== direction.Norm());
+    Vec3 direction2(5,6,7);
+    Particle rnd_pt = rand_pt_gen(start_point, direction2, rnd_gen);
+    EXPECT_NE(rnd_pt.GetDirection(), direction2.Norm());
+}

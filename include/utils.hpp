@@ -41,6 +41,7 @@ public:
     Vec3 operator +(const Vec3& other) const;
     Vec3 operator -(const Vec3& other) const;
     bool operator ==(const Vec3& other) const;
+    bool operator !=(const Vec3& other) const;
     std::ostream& operator <<(std::ostream& out) const ;
 };
 

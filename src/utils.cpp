@@ -61,6 +61,9 @@ bool Vec3::operator ==(const Vec3& other) const {
     return this->x_==other.x_ && this->y_ == other.y_ && this->z_ == other.z_;
 }
 
+bool Vec3::operator !=(const Vec3& other) const{
+    return this->x_!=other.x_ || this->y_ != other.y_ || this->z_ != other.z_;
+}
 
 std::ostream& Vec3::operator<<(std::ostream& out) const {
     out << x_ << "\t" << y_ << "\t" << z_;

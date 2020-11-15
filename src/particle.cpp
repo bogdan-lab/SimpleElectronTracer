@@ -18,6 +18,21 @@ pos_(given_p), vol_count_(0), surf_count_(0){
     V_ = GetRandomVel(direction, rnd_gen).Norm();
 }
 
+Particle::GenFunc Particle::GetGenerator(bool is_rand_dir){
+    if(is_rand_dir){
+        auto generator = [](const Vec3& p, const Vec3& v,
+                std::mt19937& rnd_gen){
+            return Particle(p, v, rnd_gen);
+        };
+        return {generator};
+    }
+    auto generator = [](const Vec3& p, const Vec3& v,
+            [[maybe_unused]] std::mt19937& rnd_gen){
+        return Particle(p, v);
+    };
+    return {generator};
+}
+
 const Vec3& Particle::GetPosition() const{return pos_;}
 const Vec3& Particle::GetDirection() const {return V_;}
 size_t Particle::GetVolCount() const {return vol_count_;}
