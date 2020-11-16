@@ -9,7 +9,7 @@ TEST(UtilsTests, VerifyPointOnSurfaceTest){
                                Vec3(1.0, 0.0, 1.0),
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 1.0, 0.0)};
-    Surface s(name, contour, std::make_unique<MirrorReflector>(0.0), false);
+    Surface s(name, contour, std::make_unique<MirrorReflector>(0.0), false,5);
     Vec3 point(1+2e-6, 0.5, 0.4);
     VerifyPointInVolume(s, point);
     EXPECT_NEAR(point.GetX(), 1.0, 1e-15);

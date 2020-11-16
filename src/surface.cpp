@@ -7,9 +7,11 @@
 #include "surface.hpp"
 
 Surface::Surface(std::string g_name, std::vector<Vec3> g_contour,
-        std::unique_ptr<Reflector> g_reflector, bool save_flag):
+        std::unique_ptr<Reflector> g_reflector, bool save_flag,
+                 size_t dump_size):
     stat_(), save_stat_(save_flag), contour_(std::move(g_contour)),
-    surface_name_(std::move(g_name)), reflector_(std::move(g_reflector))
+    surface_name_(std::move(g_name)), reflector_(std::move(g_reflector)),
+    dump_size_(dump_size)
 {
     if(contour_.size()!=4){
         std::cerr << "CURRENT VERSION WORKS ONLY WITH RECTANGLE POLYGONS!\n"
@@ -53,14 +55,23 @@ const Vec3& Surface::GetNormal() const{return normal_;}
 bool Surface::IsSaveStat() const{ return save_stat_;}
 const Reflector* Surface::GetReflector() const {return reflector_.get();}
 const std::string& Surface::GetName() const {return surface_name_;}
-void Surface::SaveParticle(const Particle& pt){stat_.push_back(pt);}
+
+void Surface::SaveParticle(Particle&& pt){
+    stat_.push_back(std::move(pt));
+    if(stat_.size()==dump_size_){
+        SaveSurfaceParticles();
+        stat_ = {};
+        stat_.reserve(dump_size_);
+
+    }
+}
+
 const Surface::SurfaceCoeficients& Surface::GetSurfaceCoefficients() const {
     return coefs_;
 }
 
-
-void Surface::SaveSurfaceParticles() const{
-    if(!stat_.empty()){
+void Surface::PrepareStatFiles() const{
+    if(save_stat_){
         using FileHolder = std::unique_ptr<FILE, int(*)(FILE*)>;
         FileHolder output_file(fopen(surface_name_.c_str(), "w"), fclose);
         if(!output_file){
@@ -69,7 +80,14 @@ void Surface::SaveSurfaceParticles() const{
         }
         fprintf(output_file.get(),
                 "#POS_X\tPOS_Y\tPOS_Z\tVX\tVY\tVZ\tVolumeCount\tSurfaceCount\n");
-        for(const auto& pt : stat_){
+
+    }
+}
+
+void Surface::SaveSurfaceParticles() const{
+    using FileHolder = std::unique_ptr<FILE, int(*)(FILE*)>;
+    FileHolder output_file(fopen(surface_name_.c_str(), "a"), fclose);
+    for(const auto& pt : stat_){
             fprintf(output_file.get(),
                     "%.6e\t%.6e\t%.6e\t%.6e\t%.6e\t%.6e\t%zu\t%zu\n",
                     pt.GetPosition().GetX(),
@@ -81,7 +99,6 @@ void Surface::SaveSurfaceParticles() const{
                     pt.GetVolCount(),
                     pt.GetSurfCount());
         }
-    }
 }
 
 std::vector<Vec3> Surface::TranslateContourIntoBasis(

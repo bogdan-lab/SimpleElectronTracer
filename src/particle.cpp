@@ -135,7 +135,7 @@ int Particle::Trace(std::vector<Surface>& walls,
     }
     //Here particle is dead --> save its position
     if (walls[wall_id].IsSaveStat()){
-        walls[wall_id].SaveParticle(*this);
+        walls[wall_id].SaveParticle(std::move(*this));
     }
     return 1;
 }
