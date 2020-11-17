@@ -6,20 +6,22 @@
 
 #include "surface.hpp"
 
-Surface::Surface(std::string g_name, std::vector<Vec3> g_contour,
-        std::unique_ptr<Reflector> g_reflector, bool save_flag,
+Surface::Surface(std::vector<Vec3> g_contour,
+        std::unique_ptr<Reflector> g_reflector, FILE* out_file,
                  size_t dump_size):
-    stat_(), save_stat_(save_flag), contour_(std::move(g_contour)),
-    surface_name_(std::move(g_name)), reflector_(std::move(g_reflector)),
-    dump_size_(dump_size)
+    stat_(), contour_(std::move(g_contour)),
+    reflector_(std::move(g_reflector)), output_file_(std::move(out_file))
 {
-    if(contour_.size()!=4){
-        std::cerr << "CURRENT VERSION WORKS ONLY WITH RECTANGLE POLYGONS!\n"
-               << "SURFACE " << surface_name_ << " IS SET INCORRECTLY\n";
-        exit(1);
-    }
+    stat_.reserve(dump_size);
     coefs_ = Surface::CalcSurfaceCoefficients(contour_);
     normal_ = Vec3(coefs_.A_, coefs_.B_, coefs_.C_).Norm();
+}
+
+Surface::~Surface(){
+    if(output_file_){
+        SaveSurfaceParticles();
+        fclose(output_file_);
+    }
 }
 
 Vec3 Surface::GetPointOnSurface() const{
@@ -30,8 +32,7 @@ Vec3 Surface::GetPointOnSurface() const{
     } else if (coefs_.A_!=0){
         return {-coefs_.D_/coefs_.A_, 0.0, 0.0};
     } else {
-        fprintf(stderr, "Surface %s has all coefficients equal to zero!!",
-                surface_name_.c_str());
+        fprintf(stderr, "Surface has all coefficients equal to zero!!");
         exit(1);
     }
 
@@ -52,16 +53,14 @@ Surface::SurfaceCoeficients Surface::CalcSurfaceCoefficients(
 
 const std::vector<Vec3>& Surface::GetContour() const{return contour_;}
 const Vec3& Surface::GetNormal() const{return normal_;}
-bool Surface::IsSaveStat() const{ return save_stat_;}
+bool Surface::IsSaveStat() const{ return bool(output_file_);}
 const Reflector* Surface::GetReflector() const {return reflector_.get();}
-const std::string& Surface::GetName() const {return surface_name_;}
 
 void Surface::SaveParticle(Particle&& pt){
     stat_.push_back(std::move(pt));
-    if(stat_.size()==dump_size_){
+    if(stat_.size()==stat_.capacity()){
         SaveSurfaceParticles();
-        stat_ = {};
-        stat_.reserve(dump_size_);
+        stat_.clear();
 
     }
 }
@@ -70,25 +69,16 @@ const Surface::SurfaceCoeficients& Surface::GetSurfaceCoefficients() const {
     return coefs_;
 }
 
-void Surface::PrepareStatFiles() const{
-    if(save_stat_){
-        using FileHolder = std::unique_ptr<FILE, int(*)(FILE*)>;
-        FileHolder output_file(fopen(surface_name_.c_str(), "w"), fclose);
-        if(!output_file){
-            fprintf(stderr, "Could not create file %s\n", surface_name_.c_str());
-            exit(1);
-        }
-        fprintf(output_file.get(),
+void Surface::WriteFileHeader() const{
+    if(output_file_){
+        fprintf(output_file_,
                 "#POS_X\tPOS_Y\tPOS_Z\tVX\tVY\tVZ\tVolumeCount\tSurfaceCount\n");
-
     }
 }
 
 void Surface::SaveSurfaceParticles() const{
-    using FileHolder = std::unique_ptr<FILE, int(*)(FILE*)>;
-    FileHolder output_file(fopen(surface_name_.c_str(), "a"), fclose);
     for(const auto& pt : stat_){
-            fprintf(output_file.get(),
+            fprintf(output_file_,
                     "%.6e\t%.6e\t%.6e\t%.6e\t%.6e\t%.6e\t%zu\t%zu\n",
                     pt.GetPosition().GetX(),
                     pt.GetPosition().GetY(),

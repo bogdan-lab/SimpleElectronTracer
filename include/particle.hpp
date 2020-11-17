@@ -27,12 +27,12 @@ public:
     using GenFunc = std::function<Particle(const Vec3&, const Vec3&, std::mt19937&)>;
     static GenFunc GetGenerator(bool is_rand_dir);
 
-    std::optional<Vec3> GetCrossPoint(const Surface& s) const;
+    std::optional<Vec3> GetCrossPoint(const std::unique_ptr<Surface>& s) const;
     double GetDistanceInGas(const Background& gas,
                             std::mt19937& rnd_gen) const;
     void MakeGasCollision(const double distance,
                           std::mt19937& rnd_gen);
-    int Trace(std::vector<Surface>& walls, const Background& gas,
+    int Trace(std::vector<std::unique_ptr<Surface>>& walls, const Background& gas,
                   std::mt19937& rnd_gen);
     Vec3 GetRandomVel(const Vec3& direction, std::mt19937& rnd_gen) const;
 

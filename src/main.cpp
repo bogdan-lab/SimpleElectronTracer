@@ -29,7 +29,7 @@ Background load_background(const json& json_data){
             json_data["gas"]["pressure"].get<double>()};
 }
 
-Surface read_surface_parameters(const json& this_surf_data,
+std::unique_ptr<Surface> read_surface_parameters(const json& this_surf_data,
                                 const json& general_json){
     std::string name = this_surf_data["name"].get<std::string>();
     std::vector<Vec3> contour;
@@ -40,11 +40,22 @@ Surface read_surface_parameters(const json& this_surf_data,
     double R = this_surf_data["reflection_coefficient"].get<double>();
     bool stat_flag = this_surf_data["collect_statistics"].get<bool>();
     size_t dump_size = general_json["particle_dump_size"].get<size_t>();
+    FILE* out_file = nullptr;
+    if(stat_flag){
+        out_file = fopen(name.c_str(), "a");
+        if(!out_file){fprintf(stderr, "could not open file\n"); exit(1);}
+        int status = setvbuf(out_file, nullptr, _IOFBF, dump_size*sizeof(Particle));
+        if(status!=0){fprintf(stderr, "could not resize file buffer\n"); exit(1);}
+    }
     if(ref_type == "mirror"){
-        return {name, contour, std::make_unique<MirrorReflector>(R), stat_flag, dump_size};
+        return std::make_unique<Surface>(contour,
+                   std::make_unique<MirrorReflector>(R),
+                   out_file, dump_size);
     }
     else if (ref_type == "cosine"){
-        return {name, contour, std::make_unique<LambertianReflector>(R), stat_flag, dump_size};
+        return std::make_unique<Surface>(contour,
+              std::make_unique<LambertianReflector>(R),
+                  out_file, dump_size);
     }
     else {
         fprintf(stderr, "unknown reflector type %s", ref_type.c_str());
@@ -52,8 +63,8 @@ Surface read_surface_parameters(const json& this_surf_data,
     }
 }
 
-std::vector<Surface> load_geometry(const json& json_data){
-    std::vector<Surface> walls;
+std::vector<std::unique_ptr<Surface>> load_geometry(const json& json_data){
+    std::vector<std::unique_ptr<Surface>> walls;
     for(const auto& el : json_data["geometry"]){
         walls.push_back(read_surface_parameters(el, json_data["general"]));
     }
@@ -78,10 +89,11 @@ int main(int argc, const char ** argv){
 
     json json_data = load_json_config(config_file);
     Background gas = load_background(json_data);
-    std::vector<Surface> walls = load_geometry(json_data);
-    std::for_each(walls.cbegin(), walls.cend(), [](const Surface& s){
-        s.PrepareStatFiles();
-    });
+    std::vector<std::unique_ptr<Surface>> walls = load_geometry(json_data);
+    std::for_each(walls.cbegin(), walls.cend(),
+                  [](const std::unique_ptr<Surface>& s){
+                                s->WriteFileHeader();
+                    });
     size_t pt_num = json_data["particles"]["number"].get<size_t>();
     Vec3 source_point(json_data["particles"]["source_point"].get<std::vector<double>>());
     Vec3 direction(json_data["particles"]["direction"].get<std::vector<double>>());
@@ -100,9 +112,7 @@ int main(int argc, const char ** argv){
         }
     }
     //***********CYCLE END*******************
-    std::for_each(walls.cbegin(), walls.cend(), [](const Surface& s){
-        if(s.IsSaveStat()){s.SaveSurfaceParticles();}
-    });
+
 
     return 0;
 }

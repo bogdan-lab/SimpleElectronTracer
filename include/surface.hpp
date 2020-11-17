@@ -25,24 +25,22 @@ public:
 
 private:
     std::vector<Particle> stat_;
-    bool save_stat_;             //flag for saving statistics
     std::vector<Vec3> contour_; 	//points which build the surface contour
-    std::string surface_name_;
     std::unique_ptr<Reflector> reflector_;
     SurfaceCoeficients coefs_;
     Vec3 normal_;
-    size_t dump_size_;
+    FILE* output_file_;
 
     static SurfaceCoeficients CalcSurfaceCoefficients(
                                               const std::vector<Vec3> contour);
+    void SaveSurfaceParticles() const;
 public:
 
     Surface() = delete;
-    Surface(std::string g_name, std::vector<Vec3> g_contour,
-            std::unique_ptr<Reflector> g_reflector, bool save_flag,
+    Surface(std::vector<Vec3> g_contour,
+            std::unique_ptr<Reflector> g_reflector, FILE* out_file,
             size_t dump_size);
-    void PrepareStatFiles() const;
-    void SaveSurfaceParticles() const;
+    void WriteFileHeader() const;
     void SaveParticle(Particle&& pt);
     bool CheckIfPointOnSurface(const Vec3& point) const;
     std::vector<Vec3> TranslateContourIntoBasis(const ONBasis_3x3& basis) const;
@@ -52,8 +50,8 @@ public:
     const Vec3& GetNormal() const;
     bool IsSaveStat() const;
     const Reflector* GetReflector() const ;
-    const std::string& GetName() const ;
     const SurfaceCoeficients& GetSurfaceCoefficients() const ;
+    ~Surface();
 };
 
 

@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_TESTS OFF)
 option(BUILD_BENCHMARKS OFF)
+option(BUILD_SANITIZE OFF)
 
 include_directories(include/)
 
@@ -35,6 +36,11 @@ if(BUILD_BENCHMARKS)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+if(BUILD_SANITIZE)
+    set (CMAKE_BUILD_TYPE Debug)
+    set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+    set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+endif()
 
 add_subdirectory(src)
 if(BUILD_TESTS)

@@ -40,8 +40,8 @@ size_t Particle::GetSurfCount() const {return surf_count_;}
 
 
 
-std::optional<Vec3> Particle::GetCrossPoint(const Surface& s) const {
-    const Surface::SurfaceCoeficients& Sc = s.GetSurfaceCoefficients();
+std::optional<Vec3> Particle::GetCrossPoint(const std::unique_ptr<Surface>& s) const {
+    const Surface::SurfaceCoeficients& Sc = s->GetSurfaceCoefficients();
     if((Sc.A_*V_.GetX() + Sc.B_*V_.GetY() + Sc.C_*V_.GetZ()) == 0.0){
         //particle moves parallel to the surface
         return std::nullopt;
@@ -59,7 +59,7 @@ std::optional<Vec3> Particle::GetCrossPoint(const Surface& s) const {
                         pos_.GetY() + V_.GetY()*t,
                         pos_.GetZ() + V_.GetZ()*t};
     VerifyPointInVolume(s, cross_point);
-    if(s.CheckIfPointOnSurface(cross_point)){
+    if(s->CheckIfPointOnSurface(cross_point)){
         return cross_point;
     }
     return std::nullopt;
@@ -105,7 +105,7 @@ Vec3 Particle::GetRandomVel(const Vec3& direction,
 }
 
 
-int Particle::Trace(std::vector<Surface>& walls,
+int Particle::Trace(std::vector<std::unique_ptr<Surface>>& walls,
                         const Background& gas, std::mt19937 &rnd_gen){
     double min_dist = GetDistanceInGas(gas, rnd_gen);
     size_t wall_id = 0;
@@ -127,15 +127,15 @@ int Particle::Trace(std::vector<Surface>& walls,
     //Here we collide with surface --> can die
     pos_ = point_on_surf;
     surf_count_++;
-    auto surf_refl = walls[wall_id].GetReflector()->ReflectParticle(*this,
-                                           walls[wall_id].GetNormal(), rnd_gen);
+    auto surf_refl = walls[wall_id]->GetReflector()->ReflectParticle(*this,
+                                           walls[wall_id]->GetNormal(), rnd_gen);
     if(surf_refl){
         V_ = surf_refl.value();
         return Trace(walls, gas, rnd_gen);
     }
     //Here particle is dead --> save its position
-    if (walls[wall_id].IsSaveStat()){
-        walls[wall_id].SaveParticle(std::move(*this));
+    if (walls[wall_id]->IsSaveStat()){
+        walls[wall_id]->SaveParticle(std::move(*this));
     }
     return 1;
 }
