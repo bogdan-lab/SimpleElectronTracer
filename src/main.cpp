@@ -44,8 +44,6 @@ std::unique_ptr<Surface> read_surface_parameters(const json& this_surf_data,
     if(stat_flag){
         out_file = fopen(name.c_str(), "a");
         if(!out_file){fprintf(stderr, "could not open file\n"); exit(1);}
-        int status = setvbuf(out_file, nullptr, _IOFBF, dump_size*sizeof(Particle));
-        if(status!=0){fprintf(stderr, "could not resize file buffer\n"); exit(1);}
     }
     if(ref_type == "mirror"){
         return std::make_unique<Surface>(contour,

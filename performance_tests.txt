@@ -163,6 +163,18 @@ generating basis has a lot of Vec3 copying --?
 
 
 
+*** checking program speed with no paralelization depending on the number of particles ***
+pressure 0
+dump buffer = 100 000  -- controls only memory
+
+pt_num	total time, s
+1e6	1.4
+1e7	15.3
+1e8	156.1
+1e8	156.5	#dump buffer 1e6
+1e8	163.9	#dump buffer 1e6 + synchronized I/O buffer size
+1e8	161.6	#dump buffer 1e7 + synchronized I/O buffer size
+1e8	370.3	#dump buffer 1e7 + 0 sized I/O buffer
 
 
 
