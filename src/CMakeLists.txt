@@ -6,6 +6,7 @@ add_library(tracer_lib STATIC
 	    utils.cpp		
 )
 
+target_link_libraries(tracer_lib PUBLIC CONAN_PKG::fmt)
 
 set_target_properties(tracer_lib PROPERTIES
                         OUTPUT_NAME_DEBUG tracer_lib_debug

@@ -4,11 +4,15 @@
 #include "surface.hpp"
 
 TEST(UtilsTests, VerifyPointOnSurfaceTest){
+    std::ofstream file;
+    std::unique_ptr<char[]> buff;
     std::vector<Vec3> contour {Vec3(1.0, 0.0, 0.0),
                                Vec3(1.0, 0.0, 1.0),
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 1.0, 0.0)};
-    std::unique_ptr<Surface> s = std::make_unique<Surface>(contour, std::make_unique<MirrorReflector>(0.0), nullptr,5);
+    std::unique_ptr<Surface> s = std::make_unique<Surface>(contour,
+           std::make_unique<MirrorReflector>(0.0), std::move(file),
+           5, std::move(buff));
     Vec3 point(1+2e-6, 0.5, 0.4);
     VerifyPointInVolume(s, point);
     EXPECT_NEAR(point.GetX(), 1.0, 1e-15);

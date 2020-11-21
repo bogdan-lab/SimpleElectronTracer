@@ -28,6 +28,7 @@ conan_check(VERSION 1.14.4 REQUIRED)
 conan_cmake_run(REQUIRES
                 nlohmann_json/3.9.1
                 lyra/1.5.1
+                fmt/7.1.0
         OPTIONS BASIC_SETUP CMAKE_TARGETS
         BUILD missing)
 

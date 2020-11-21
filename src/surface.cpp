@@ -3,24 +3,21 @@
 #include <iostream>
 #include <list>
 #include <algorithm>
+#include <fmt/core.h>
 
 #include "surface.hpp"
 
 Surface::Surface(std::vector<Vec3> g_contour,
-        std::unique_ptr<Reflector> g_reflector, FILE* out_file,
-                 size_t dump_size):
+        std::unique_ptr<Reflector> g_reflector, std::ofstream&& out_file,
+                 size_t dump_size, std::unique_ptr<char[]>&& buff):
     stat_(), contour_(std::move(g_contour)),
-    reflector_(std::move(g_reflector)), output_file_(std::move(out_file))
+    reflector_(std::move(g_reflector)),
+    io_buffer_(std::move(buff)), output_file_(std::move(out_file))
 {
-    stat_.reserve(dump_size);
     coefs_ = Surface::CalcSurfaceCoefficients(contour_);
     normal_ = Vec3(coefs_.A_, coefs_.B_, coefs_.C_).Norm();
-}
-
-Surface::~Surface(){
-    if(output_file_){
-        SaveSurfaceParticles();
-        fclose(output_file_);
+    if(output_file_.is_open()){
+        stat_.reserve(dump_size);
     }
 }
 
@@ -53,7 +50,7 @@ Surface::SurfaceCoeficients Surface::CalcSurfaceCoefficients(
 
 const std::vector<Vec3>& Surface::GetContour() const{return contour_;}
 const Vec3& Surface::GetNormal() const{return normal_;}
-bool Surface::IsSaveStat() const{ return bool(output_file_);}
+bool Surface::IsSaveStat() const{ return output_file_.is_open();}
 const Reflector* Surface::GetReflector() const {return reflector_.get();}
 
 void Surface::SaveParticle(Particle&& pt){
@@ -69,26 +66,25 @@ const Surface::SurfaceCoeficients& Surface::GetSurfaceCoefficients() const {
     return coefs_;
 }
 
-void Surface::WriteFileHeader() const{
-    if(output_file_){
-        fprintf(output_file_,
-                "#POS_X\tPOS_Y\tPOS_Z\tVX\tVY\tVZ\tVolumeCount\tSurfaceCount\n");
+void Surface::WriteFileHeader(){
+    if(output_file_.is_open()){
+        output_file_ << "#POS_X\tPOS_Y\tPOS_Z"
+                     << "\tVX\tVY\tVZ\tVolumeCount\tSurfaceCount\n";
     }
 }
 
-void Surface::SaveSurfaceParticles() const{
+void Surface::SaveSurfaceParticles(){
     for(const auto& pt : stat_){
-            fprintf(output_file_,
-                    "%.6e\t%.6e\t%.6e\t%.6e\t%.6e\t%.6e\t%zu\t%zu\n",
-                    pt.GetPosition().GetX(),
-                    pt.GetPosition().GetY(),
-                    pt.GetPosition().GetZ(),
-                    pt.GetDirection().GetX(),
-                    pt.GetDirection().GetY(),
-                    pt.GetDirection().GetZ(),
-                    pt.GetVolCount(),
-                    pt.GetSurfCount());
-        }
+        output_file_ << fmt::format("{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:d}\t{:d}\n",
+                                    pt.GetPosition().GetX(),
+                                    pt.GetPosition().GetY(),
+                                    pt.GetPosition().GetZ(),
+                                    pt.GetDirection().GetX(),
+                                    pt.GetDirection().GetY(),
+                                    pt.GetDirection().GetZ(),
+                                    pt.GetVolCount(),
+                                    pt.GetSurfCount());
+    }
 }
 
 std::vector<Vec3> Surface::TranslateContourIntoBasis(

@@ -178,9 +178,26 @@ pt_num	total time, s
 
 
 
+#fixed buffer control
+pt_num	total time, s
+1e8		dump = 1
+1e8	199.9	dump = 10
+1e8		dump = 1e2
+1e8	157.6 	dump = 1e4 pt
+1e8	154.5	dump = 1e6
 
+#case with pressure 100
+1e7	67.7	dump = 1e6
+1e7	69.7	dump = 1e5
+1e7	70.2	dump = 1e4
 
+**********************************************************************
+*There is some depdendece on buffer size only when it is too small...*
+**********************************************************************
 
+******************************************************************************************
+* Stupid quick benchmark showed that fstream and FILE* are equaly fast ways to save data *
+******************************************************************************************
 
 
 

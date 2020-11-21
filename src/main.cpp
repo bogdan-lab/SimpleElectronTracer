@@ -40,20 +40,24 @@ std::unique_ptr<Surface> read_surface_parameters(const json& this_surf_data,
     double R = this_surf_data["reflection_coefficient"].get<double>();
     bool stat_flag = this_surf_data["collect_statistics"].get<bool>();
     size_t dump_size = general_json["particle_dump_size"].get<size_t>();
-    FILE* out_file = nullptr;
+    std::ofstream out_file;
+    std::unique_ptr<char[]> buff;
     if(stat_flag){
-        out_file = fopen(name.c_str(), "a");
-        if(!out_file){fprintf(stderr, "could not open file\n"); exit(1);}
+        size_t buff_size = dump_size*sizeof(Particle);
+        buff = std::make_unique<char[]>(buff_size);
+        out_file.rdbuf()->pubsetbuf(buff.get(), buff_size);
+        out_file.open(name, std::ios_base::app);
+        if(!out_file.is_open()){fprintf(stderr, "could not open file\n"); exit(1);}
     }
     if(ref_type == "mirror"){
         return std::make_unique<Surface>(contour,
                    std::make_unique<MirrorReflector>(R),
-                   out_file, dump_size);
+                   std::move(out_file), dump_size, std::move(buff));
     }
     else if (ref_type == "cosine"){
         return std::make_unique<Surface>(contour,
               std::make_unique<LambertianReflector>(R),
-                  out_file, dump_size);
+                  std::move(out_file), dump_size, std::move(buff));
     }
     else {
         fprintf(stderr, "unknown reflector type %s", ref_type.c_str());
