@@ -52,6 +52,7 @@ public:
     bool IsSaveStat() const;
     const Reflector* GetReflector() const ;
     const SurfaceCoeficients& GetSurfaceCoefficients() const ;
+    ~Surface();
 };
 
 

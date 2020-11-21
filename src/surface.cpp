@@ -87,6 +87,10 @@ void Surface::SaveSurfaceParticles(){
     }
 }
 
+Surface::~Surface(){
+    SaveSurfaceParticles();
+}
+
 std::vector<Vec3> Surface::TranslateContourIntoBasis(
         const ONBasis_3x3 &basis) const{
     std::vector<Vec3> basis_contour;
