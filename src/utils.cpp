@@ -76,15 +76,6 @@ double Vec3::GetDistance(const Vec3& end) const {
                 (z_-end.GetZ())*(z_-end.GetZ()));
 }
 
-void VerifyPointInVolume(const std::unique_ptr<Surface>& s, Vec3& point){
-    /*!Function assumes that surface normal is directed inside the volume!*/
-    Vec3 p_on_s = s->GetPointOnSurface();
-    Vec3 from_s_to_point(p_on_s, point);
-    while(from_s_to_point.Dot(s->GetNormal())<0){
-        point = point - s->GetNormal().Times(from_s_to_point.Dot(s->GetNormal()));
-        from_s_to_point = Vec3(p_on_s, point);
-    }
-}
 
 ONBasis_3x3::ONBasis_3x3(Vec3 i, Vec3 j,Vec3 k):
     i_(std::move(i)), j_(std::move(j)), k_(std::move(k)){

@@ -63,7 +63,6 @@ public:
     const Vec3& GetZVec() const;
 };
 
-void VerifyPointInVolume(const std::unique_ptr<Surface>& s, Vec3& point);
 
 std::vector<int> PrepareQuarterListForContour(const std::vector<Vec3>& contour,
                                               const Vec3& point);

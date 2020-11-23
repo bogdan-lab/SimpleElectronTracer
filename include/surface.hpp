@@ -24,27 +24,28 @@ public:
     };
 
 private:
-    std::vector<Particle> stat_;
     std::vector<Vec3> contour_; 	//points which build the surface contour
     std::unique_ptr<Reflector> reflector_;
-    SurfaceCoeficients coefs_;
-    Vec3 normal_;
     std::unique_ptr<char[]> io_buffer_;
     std::ofstream output_file_;
+    SurfaceCoeficients coefs_;
+    Vec3 normal_;
 
     static SurfaceCoeficients CalcSurfaceCoefficients(
                                               const std::vector<Vec3> contour);
-    void SaveSurfaceParticles();
 public:
 
-    Surface() = delete;
     Surface(std::vector<Vec3> g_contour,
             std::unique_ptr<Reflector> g_reflector, std::ofstream&& out_file,
-            size_t dump_size, std::unique_ptr<char[]>&& buff);
+             std::unique_ptr<char[]>&& buff);
     void WriteFileHeader();
     void SaveParticle(Particle&& pt);
     bool CheckIfPointOnSurface(const Vec3& point) const;
     std::vector<Vec3> TranslateContourIntoBasis(const ONBasis_3x3& basis) const;
+    std::optional<Vec3> GetCrossPoint(const Vec3& position,
+                                      const Vec3& direction) const;
+    void VerifyPointInVolume(const Vec3& start, Vec3 &end,
+                             const double epsilon=1e-15) const;
 
     Vec3 GetPointOnSurface() const;
     const std::vector<Vec3>& GetContour() const ;
@@ -52,7 +53,6 @@ public:
     bool IsSaveStat() const;
     const Reflector* GetReflector() const ;
     const SurfaceCoeficients& GetSurfaceCoefficients() const ;
-    ~Surface();
 };
 
 

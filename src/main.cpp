@@ -52,12 +52,12 @@ std::unique_ptr<Surface> read_surface_parameters(const json& this_surf_data,
     if(ref_type == "mirror"){
         return std::make_unique<Surface>(contour,
                    std::make_unique<MirrorReflector>(R),
-                   std::move(out_file), dump_size, std::move(buff));
+                   std::move(out_file), std::move(buff));
     }
     else if (ref_type == "cosine"){
         return std::make_unique<Surface>(contour,
               std::make_unique<LambertianReflector>(R),
-                  std::move(out_file), dump_size, std::move(buff));
+                  std::move(out_file), std::move(buff));
     }
     else {
         fprintf(stderr, "unknown reflector type %s", ref_type.c_str());

@@ -40,31 +40,6 @@ size_t Particle::GetSurfCount() const {return surf_count_;}
 
 
 
-std::optional<Vec3> Particle::GetCrossPoint(const std::unique_ptr<Surface>& s) const {
-    const Surface::SurfaceCoeficients& Sc = s->GetSurfaceCoefficients();
-    if((Sc.A_*V_.GetX() + Sc.B_*V_.GetY() + Sc.C_*V_.GetZ()) == 0.0){
-        //particle moves parallel to the surface
-        return std::nullopt;
-    }
-    //Look at time needed to reach the surface
-    double tmp_num = Sc.A_*pos_.GetX() + Sc.B_*pos_.GetY() +
-                     Sc.C_*pos_.GetZ() + Sc.D_;
-    double tmp_den = Sc.A_*V_.GetX() + Sc.B_*V_.GetY() + Sc.C_*V_.GetZ();
-    double t = -1*tmp_num/tmp_den;
-    if(t<=0){
-        return std::nullopt;
-    }
-    //Here at least direction is correct --> check for boundaries
-    Vec3 cross_point = {pos_.GetX() + V_.GetX()*t,
-                        pos_.GetY() + V_.GetY()*t,
-                        pos_.GetZ() + V_.GetZ()*t};
-    VerifyPointInVolume(s, cross_point);
-    if(s->CheckIfPointOnSurface(cross_point)){
-        return cross_point;
-    }
-    return std::nullopt;
-}
-
 double Particle::GetDistanceInGas(const Background& gas,
                                   std::mt19937& rnd_gen) const{
     if (gas.p_ == 0.0){
@@ -112,7 +87,7 @@ int Particle::Trace(std::vector<std::unique_ptr<Surface>>& walls,
     Vec3 point_on_surf;
     bool colide_in_gas_flag = true;
     for(size_t i=0; i<walls.size(); i++){
-        auto cross_res = GetCrossPoint(walls[i]);
+        auto cross_res = walls[i]->GetCrossPoint(pos_, V_);
         if(cross_res && pos_.GetDistance(cross_res.value())<min_dist){
             min_dist = pos_.GetDistance(cross_res.value());
             wall_id = i;

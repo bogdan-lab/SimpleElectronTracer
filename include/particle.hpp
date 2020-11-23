@@ -27,7 +27,6 @@ public:
     using GenFunc = std::function<Particle(const Vec3&, const Vec3&, std::mt19937&)>;
     static GenFunc GetGenerator(bool is_rand_dir);
 
-    std::optional<Vec3> GetCrossPoint(const std::unique_ptr<Surface>& s) const;
     double GetDistanceInGas(const Background& gas,
                             std::mt19937& rnd_gen) const;
     void MakeGasCollision(const double distance,

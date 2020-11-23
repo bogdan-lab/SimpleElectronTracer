@@ -9,16 +9,13 @@
 
 Surface::Surface(std::vector<Vec3> g_contour,
         std::unique_ptr<Reflector> g_reflector, std::ofstream&& out_file,
-                 size_t dump_size, std::unique_ptr<char[]>&& buff):
-    stat_(), contour_(std::move(g_contour)),
+                  std::unique_ptr<char[]>&& buff):
+    contour_(std::move(g_contour)),
     reflector_(std::move(g_reflector)),
     io_buffer_(std::move(buff)), output_file_(std::move(out_file))
 {
     coefs_ = Surface::CalcSurfaceCoefficients(contour_);
     normal_ = Vec3(coefs_.A_, coefs_.B_, coefs_.C_).Norm();
-    if(output_file_.is_open()){
-        stat_.reserve(dump_size);
-    }
 }
 
 Vec3 Surface::GetPointOnSurface() const{
@@ -53,14 +50,7 @@ const Vec3& Surface::GetNormal() const{return normal_;}
 bool Surface::IsSaveStat() const{ return output_file_.is_open();}
 const Reflector* Surface::GetReflector() const {return reflector_.get();}
 
-void Surface::SaveParticle(Particle&& pt){
-    stat_.push_back(std::move(pt));
-    if(stat_.size()==stat_.capacity()){
-        SaveSurfaceParticles();
-        stat_.clear();
 
-    }
-}
 
 const Surface::SurfaceCoeficients& Surface::GetSurfaceCoefficients() const {
     return coefs_;
@@ -73,8 +63,7 @@ void Surface::WriteFileHeader(){
     }
 }
 
-void Surface::SaveSurfaceParticles(){
-    for(const auto& pt : stat_){
+void Surface::SaveParticle(Particle&& pt){
         output_file_ << fmt::format("{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:d}\t{:d}\n",
                                     pt.GetPosition().GetX(),
                                     pt.GetPosition().GetY(),
@@ -84,11 +73,7 @@ void Surface::SaveSurfaceParticles(){
                                     pt.GetDirection().GetZ(),
                                     pt.GetVolCount(),
                                     pt.GetSurfCount());
-    }
-}
 
-Surface::~Surface(){
-    SaveSurfaceParticles();
 }
 
 std::vector<Vec3> Surface::TranslateContourIntoBasis(
@@ -120,4 +105,47 @@ bool Surface::CheckIfPointOnSurface(const Vec3& point) const{
     int winding_num = CalculateWindingNumber(quarters, basis_contour,
                                              basis_point);
     return !(winding_num%2==0);
+}
+
+std::optional<Vec3> Surface::GetCrossPoint(const Vec3& pos,
+                                           const Vec3& dir) const {
+    if((coefs_.A_*dir.GetX()
+        + coefs_.B_*dir.GetY()
+        + coefs_.C_*dir.GetZ()) == 0.0){
+        //particle moves parallel to the surface
+        return std::nullopt;
+    }
+    //Look at time needed to reach the surface
+    double tmp_num = coefs_.A_*pos.GetX() + coefs_.B_*pos.GetY() +
+                     coefs_.C_*pos.GetZ() + coefs_.D_;
+    double tmp_den = coefs_.A_*dir.GetX()
+            + coefs_.B_*dir.GetY() + coefs_.C_*dir.GetZ();
+    double t = -1*tmp_num/tmp_den;
+    if(t<=0){
+        return std::nullopt;
+    }
+    //Here at least direction is correct --> check for boundaries
+    Vec3 cross_point = {pos.GetX() + dir.GetX()*t,
+                        pos.GetY() + dir.GetY()*t,
+                        pos.GetZ() + dir.GetZ()*t};
+    VerifyPointInVolume(pos, cross_point);
+    if(CheckIfPointOnSurface(cross_point)){
+        return cross_point;
+    }
+    return std::nullopt;
+}
+
+void Surface::VerifyPointInVolume(const Vec3& start, Vec3& end,
+                                  const double epsilon) const {
+    /*!Function assumes that surface normal is directed inside the volume!*/
+    Vec3 p_on_s = GetPointOnSurface();
+    Vec3 from_s_to_point(p_on_s, end);
+    Vec3 pt_direction(start, end);
+    pt_direction.Norm();
+    double defect = from_s_to_point.Dot(normal_);
+    while( defect<0 || defect>epsilon){
+        end = end - pt_direction.Times(from_s_to_point.Dot(pt_direction));
+        from_s_to_point = Vec3(p_on_s, end);
+        defect = from_s_to_point.Dot(normal_);
+    }
 }
