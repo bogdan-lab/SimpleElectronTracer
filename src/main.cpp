@@ -50,12 +50,12 @@ std::unique_ptr<Surface> read_surface_parameters(const json& this_surf_data,
         if(!out_file.is_open()){fprintf(stderr, "could not open file\n"); exit(1);}
     }
     if(ref_type == "mirror"){
-        return std::make_unique<Surface>(contour,
+        return std::make_unique<Surface>(std::move(contour),
                    std::make_unique<MirrorReflector>(R),
                    std::move(out_file), std::move(buff));
     }
     else if (ref_type == "cosine"){
-        return std::make_unique<Surface>(contour,
+        return std::make_unique<Surface>(std::move(contour),
               std::make_unique<LambertianReflector>(R),
                   std::move(out_file), std::move(buff));
     }
@@ -92,6 +92,10 @@ int main(int argc, const char ** argv){
     json json_data = load_json_config(config_file);
     Background gas = load_background(json_data);
     std::vector<std::unique_ptr<Surface>> walls = load_geometry(json_data);
+    if(!check_surface_orientations(walls)){
+        fprintf(stderr, "Some surfaces has bad orientation. check contour numeration\n");
+        exit(1);
+    }
     std::for_each(walls.cbegin(), walls.cend(),
                   [](const std::unique_ptr<Surface>& s){
                                 s->WriteFileHeader();
@@ -106,11 +110,12 @@ int main(int argc, const char ** argv){
 
     auto pt_generator = Particle::GetGenerator(is_dir_random);
     //************MAIN CYLE******************
-    for(size_t i=0; i<pt_num; i++){
-          pt_generator(source_point, direction, rnd_gen)
-                .Trace(walls, gas, rnd_gen);
-        if((i+1)%(pt_num/10)==0){
-            printf("%.2lf %%\n" , static_cast<double>(100.0*i/pt_num));
+    size_t traced_pt_num = 0;
+    while(traced_pt_num<pt_num){
+          traced_pt_num = pt_generator(source_point, direction, rnd_gen)
+                                .Trace(walls, gas, rnd_gen);
+        if((traced_pt_num+1)%(pt_num/10)==0){
+            printf("%.2lf %%\n" , static_cast<double>(100.0*traced_pt_num/pt_num));
         }
     }
     //***********CYCLE END*******************

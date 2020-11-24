@@ -64,6 +64,9 @@ public:
 };
 
 
+bool check_surface_orientations(const std::vector<std::unique_ptr<Surface>>& geo);
+
+
 std::vector<int> PrepareQuarterListForContour(const std::vector<Vec3>& contour,
                                               const Vec3& point);
 int CalculateWindingNumber(const std::vector<int>& quarters,

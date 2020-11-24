@@ -7,8 +7,8 @@
 
 #include "surface.hpp"
 
-Surface::Surface(std::vector<Vec3> g_contour,
-        std::unique_ptr<Reflector> g_reflector, std::ofstream&& out_file,
+Surface::Surface(std::vector<Vec3>&& g_contour,
+        std::unique_ptr<Reflector>&& g_reflector, std::ofstream&& out_file,
                   std::unique_ptr<char[]>&& buff):
     contour_(std::move(g_contour)),
     reflector_(std::move(g_reflector)),
@@ -19,6 +19,7 @@ Surface::Surface(std::vector<Vec3> g_contour,
 }
 
 Vec3 Surface::GetPointOnSurface() const{
+    //TODO if you save surface bassi you can get point on surface by it
     if(coefs_.C_!=0){
         return {0.0, 0.0, -coefs_.D_/coefs_.C_};
     } else if (coefs_.B_!=0){
@@ -29,9 +30,13 @@ Vec3 Surface::GetPointOnSurface() const{
         fprintf(stderr, "Surface has all coefficients equal to zero!!");
         exit(1);
     }
-
 }
 
+Vec3 Surface::GetRandomPointInContour(std::mt19937 &rng) const{
+    //TODO finish this function
+    //Plan --> roll two numbers in range of bounding rectangle of the contour in surface basis
+    return {};
+}
 
 Surface::SurfaceCoeficients Surface::CalcSurfaceCoefficients(
                                             const std::vector<Vec3> contour){
@@ -135,16 +140,16 @@ std::optional<Vec3> Surface::GetCrossPoint(const Vec3& pos,
     return std::nullopt;
 }
 
-void Surface::VerifyPointInVolume(const Vec3& start, Vec3& end,
-                                  const double epsilon) const {
+void Surface::VerifyPointInVolume(const Vec3& start, Vec3& end) const {
     /*!Function assumes that surface normal is directed inside the volume!*/
     Vec3 p_on_s = GetPointOnSurface();
     Vec3 from_s_to_point(p_on_s, end);
     Vec3 pt_direction(start, end);
     pt_direction.Norm();
-    double defect = from_s_to_point.Dot(normal_);
-    while( defect<0 || defect>epsilon){
-        end = end - pt_direction.Times(from_s_to_point.Dot(pt_direction));
+    auto defect = from_s_to_point.Dot(normal_);
+    auto cos_alpha = normal_.Dot(pt_direction);
+    while( defect<0){
+        end = end - pt_direction.Times(defect/cos_alpha);
         from_s_to_point = Vec3(p_on_s, end);
         defect = from_s_to_point.Dot(normal_);
     }

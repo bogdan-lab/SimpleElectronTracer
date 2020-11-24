@@ -121,6 +121,24 @@ Vec3 ONBasis_3x3::FromThisCoorsToOriginal(const Vec3& vec) const{
            k_.Times(vec.GetZ());
 }
 
+
+bool check_surface_orientations(const std::vector<std::unique_ptr<Surface>>& geo){
+    for(const auto& s : geo){
+        auto point = s->GetRandomPointInContour(); //TODO finish function
+        auto direction = s->GetNormal();
+        auto found_crossetion = false;
+        for(const auto& other_s : geo){
+            if(other_s->GetCrossPoint(point, direction))
+                found_crossetion=true;
+        }
+        if(!found_crossetion)
+            return false;
+    }
+    return true;
+}
+
+
+
 int GetQuarter(const Vec3& point, const Vec3& node){
     if(node.GetX()>point.GetX() && node.GetY()>=point.GetY()){
         return 0;

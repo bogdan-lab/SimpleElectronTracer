@@ -86,14 +86,25 @@ int Particle::Trace(std::vector<std::unique_ptr<Surface>>& walls,
     size_t wall_id = 0;
     Vec3 point_on_surf;
     bool colide_in_gas_flag = true;
+    bool found_crossection_with_surface = false;
     for(size_t i=0; i<walls.size(); i++){
         auto cross_res = walls[i]->GetCrossPoint(pos_, V_);
-        if(cross_res && pos_.GetDistance(cross_res.value())<min_dist){
-            min_dist = pos_.GetDistance(cross_res.value());
-            wall_id = i;
-            colide_in_gas_flag = false;
-            point_on_surf = cross_res.value();
+        if(cross_res){
+            found_crossection_with_surface = true;
+            if(pos_.GetDistance(cross_res.value())<min_dist){
+                min_dist = pos_.GetDistance(cross_res.value());
+                wall_id = i;
+                colide_in_gas_flag = false;
+                point_on_surf = cross_res.value();
+            }
         }
+    }
+    if(!found_crossection_with_surface){
+        //should be that one particle which missed all surfaces due to double precision
+        fprintf(stderr, "Particle missed all surfacces\n");
+        fprintf(stderr, "POS = (%.6e ; %.6e ; %.6e) \t V = (%.6e ; %.6e ; %.6e)\n",
+                pos_.GetX(), pos_.GetY(), pos_.GetZ(), V_.GetX(), V_.GetY(), V_.GetZ());
+        return 0;
     }
     if(colide_in_gas_flag){
         MakeGasCollision(min_dist, rnd_gen);

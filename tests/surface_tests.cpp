@@ -8,7 +8,7 @@ TEST(SurfaceTests, GenerationTest){
                                Vec3(1.0, 0.0, 1.0),
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 1.0, 0.0)};
-    Surface s(contour, std::make_unique<MirrorReflector>(0.0), std::move(file),
+    Surface s(std::move(contour), std::make_unique<MirrorReflector>(0.0), std::move(file),
                std::move(buff));
     EXPECT_NEAR(s.GetNormal().Length(), 1.0, 1e-15);
     EXPECT_EQ(s.GetNormal().GetX(), -1.0);
@@ -29,7 +29,7 @@ TEST(SurfaceTests, GetPointOnSurfaceTest){
                                Vec3(0.5, 0.5, 0.0),
                                Vec3(0.5, 0.5, 1.0),
                                Vec3(0.0, 0.0, 1.0)};
-    Surface s(contour, std::make_unique<MirrorReflector>(0.0), std::move(file),
+    Surface s(std::move(contour), std::make_unique<MirrorReflector>(0.0), std::move(file),
                std::move(buff));
     Vec3 p = s.GetPointOnSurface();
     Surface::SurfaceCoeficients Sc=s.GetSurfaceCoefficients();
@@ -43,7 +43,7 @@ TEST(SurfaceTests, CheckIfPointOnSurface){
                                Vec3(1.0, 0.0, 1.0),
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 1.0, 0.0)};
-    Surface s(contour, std::make_unique<MirrorReflector>(0.0), std::move(file),
+    Surface s(std::move(contour), std::make_unique<MirrorReflector>(0.0), std::move(file),
                std::move(buff));
     Vec3 point(1.0, 0.5, 0.7);
     EXPECT_TRUE(s.CheckIfPointOnSurface(point));
@@ -61,16 +61,16 @@ TEST(SurfaceTests, VerifyPointOnSurfaceTest){
                                Vec3(1.0, 0.0, 1.0),
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 1.0, 0.0)};
-    std::unique_ptr<Surface> s = std::make_unique<Surface>(contour,
+    std::unique_ptr<Surface> s = std::make_unique<Surface>(std::move(contour),
            std::make_unique<MirrorReflector>(0.0), std::move(file),
             std::move(buff));
     Vec3 end(1+2e-6, 0.5, 0.4);
     Vec3 start(0.5, 0.5, 0.4);
-    //s->VerifyPointInVolume(start, end);
-    //EXPECT_NEAR(end.GetX(), 1.0, 1e-15);
-    //EXPECT_LE(end.GetX(), 1.0);
-    //EXPECT_EQ(end.GetY(), 0.5);
-    //EXPECT_EQ(end.GetZ(), 0.4);
+    s->VerifyPointInVolume(start, end);
+    EXPECT_NEAR(end.GetX(), 1.0, 1e-15);
+    EXPECT_LE(end.GetX(), 1.0);
+    EXPECT_EQ(end.GetY(), 0.5);
+    EXPECT_EQ(end.GetZ(), 0.4);
 
     Vec3 start2(0.5, 0.3, 0.0);
     Vec3 end2(1+1, 0.3, 1.5);

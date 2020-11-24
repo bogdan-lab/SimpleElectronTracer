@@ -30,13 +30,16 @@ private:
     std::ofstream output_file_;
     SurfaceCoeficients coefs_;
     Vec3 normal_;
+    //TODO
+    //surface_basis
+    //contour_boundaries in basis
 
     static SurfaceCoeficients CalcSurfaceCoefficients(
                                               const std::vector<Vec3> contour);
 public:
 
-    Surface(std::vector<Vec3> g_contour,
-            std::unique_ptr<Reflector> g_reflector, std::ofstream&& out_file,
+    Surface(std::vector<Vec3>&& g_contour,
+            std::unique_ptr<Reflector>&& g_reflector, std::ofstream&& out_file,
              std::unique_ptr<char[]>&& buff);
     void WriteFileHeader();
     void SaveParticle(Particle&& pt);
@@ -44,10 +47,10 @@ public:
     std::vector<Vec3> TranslateContourIntoBasis(const ONBasis_3x3& basis) const;
     std::optional<Vec3> GetCrossPoint(const Vec3& position,
                                       const Vec3& direction) const;
-    void VerifyPointInVolume(const Vec3& start, Vec3 &end,
-                             const double epsilon=1e-15) const;
+    void VerifyPointInVolume(const Vec3& start, Vec3 &end) const;
 
     Vec3 GetPointOnSurface() const;
+    Vec3 GetRandomPointInContour(std::mt19937& rng) const;
     const std::vector<Vec3>& GetContour() const ;
     const Vec3& GetNormal() const;
     bool IsSaveStat() const;
