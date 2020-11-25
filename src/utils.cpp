@@ -65,8 +65,8 @@ bool Vec3::operator !=(const Vec3& other) const{
     return this->x_!=other.x_ || this->y_ != other.y_ || this->z_ != other.z_;
 }
 
-std::ostream& Vec3::operator<<(std::ostream& out) const {
-    out << x_ << "\t" << y_ << "\t" << z_;
+std::ostream& operator<<(std::ostream& out, const Vec3& vec){
+    out << vec.GetX() << "\t" << vec.GetY() << "\t" << vec.GetZ();
     return out;
 }
 
@@ -124,7 +124,7 @@ Vec3 ONBasis_3x3::FromThisCoorsToOriginal(const Vec3& vec) const{
 
 bool check_surface_orientations(const std::vector<std::unique_ptr<Surface>>& geo){
     for(const auto& s : geo){
-        auto point = s->GetRandomPointInContour(); //TODO finish function
+        auto point = s->GetMassCenter();
         auto direction = s->GetNormal();
         auto found_crossetion = false;
         for(const auto& other_s : geo){

@@ -16,26 +16,43 @@ Surface::Surface(std::vector<Vec3>&& g_contour,
 {
     coefs_ = Surface::CalcSurfaceCoefficients(contour_);
     normal_ = Vec3(coefs_.A_, coefs_.B_, coefs_.C_).Norm();
+    tri_areas_ = Surface::CalcTriangleAreas(contour_);
+    mass_center_ = Surface::CalcCenterOfMass(contour_);
 }
 
-Vec3 Surface::GetPointOnSurface() const{
-    //TODO if you save surface bassi you can get point on surface by it
-    if(coefs_.C_!=0){
-        return {0.0, 0.0, -coefs_.D_/coefs_.C_};
-    } else if (coefs_.B_!=0){
-        return {0.0, -coefs_.D_/coefs_.B_, 0.0};
-    } else if (coefs_.A_!=0){
-        return {-coefs_.D_/coefs_.A_, 0.0, 0.0};
-    } else {
-        fprintf(stderr, "Surface has all coefficients equal to zero!!");
-        exit(1);
+
+std::vector<double> Surface::CalcTriangleAreas(const std::vector<Vec3> &contour){
+    std::vector<double> areas;
+    areas.reserve(contour.size()-2);
+    for(size_t i=1; i<contour.size()-1; i++){
+        areas.push_back(0.5*Vec3(contour[0], contour[i])
+                .Cross(Vec3(contour[0], contour[i+1]))
+                .Length());
     }
+    return areas;
+}
+
+Vec3 Surface::CalcCenterOfMass(const std::vector<Vec3>& contour){
+    double x = 0;
+    double y = 0;
+    double z = 0;
+    for(size_t i=0; i<contour.size(); i++){
+        x+=contour[i].GetX();
+        y+=contour[i].GetY();
+        z+=contour[i].GetZ();
+    }
+    return {x/contour.size(), y/contour.size(), z/contour.size()};
 }
 
 Vec3 Surface::GetRandomPointInContour(std::mt19937 &rng) const{
-    //TODO finish this function
-    //Plan --> roll two numbers in range of bounding rectangle of the contour in surface basis
-    return {};
+    std::discrete_distribution<size_t> dist(tri_areas_.begin(), tri_areas_.end());
+    size_t tri_idx = dist(rng);
+    std::uniform_real_distribution<double> dist_2(0.0, 1.0);
+    double r1 = dist_2(rng);
+    double r2 = dist_2(rng);
+    return contour_[0].Times(1-sqrt(r1)) +
+           contour_[tri_idx+1].Times(sqrt(r1)*(1-r2)) +
+            contour_[tri_idx+2].Times(r2*sqrt(r1));
 }
 
 Surface::SurfaceCoeficients Surface::CalcSurfaceCoefficients(
@@ -54,7 +71,7 @@ const std::vector<Vec3>& Surface::GetContour() const{return contour_;}
 const Vec3& Surface::GetNormal() const{return normal_;}
 bool Surface::IsSaveStat() const{ return output_file_.is_open();}
 const Reflector* Surface::GetReflector() const {return reflector_.get();}
-
+const Vec3& Surface::GetMassCenter() const{return mass_center_;}
 
 
 const Surface::SurfaceCoeficients& Surface::GetSurfaceCoefficients() const {
@@ -142,15 +159,14 @@ std::optional<Vec3> Surface::GetCrossPoint(const Vec3& pos,
 
 void Surface::VerifyPointInVolume(const Vec3& start, Vec3& end) const {
     /*!Function assumes that surface normal is directed inside the volume!*/
-    Vec3 p_on_s = GetPointOnSurface();
-    Vec3 from_s_to_point(p_on_s, end);
+    Vec3 from_s_to_point(mass_center_, end);
     Vec3 pt_direction(start, end);
     pt_direction.Norm();
     auto defect = from_s_to_point.Dot(normal_);
     auto cos_alpha = normal_.Dot(pt_direction);
     while( defect<0){
         end = end - pt_direction.Times(defect/cos_alpha);
-        from_s_to_point = Vec3(p_on_s, end);
+        from_s_to_point = Vec3(mass_center_, end);
         defect = from_s_to_point.Dot(normal_);
     }
 }

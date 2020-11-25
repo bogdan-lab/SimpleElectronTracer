@@ -30,9 +30,8 @@ private:
     std::ofstream output_file_;
     SurfaceCoeficients coefs_;
     Vec3 normal_;
-    //TODO
-    //surface_basis
-    //contour_boundaries in basis
+    std::vector<double> tri_areas_;
+    Vec3 mass_center_;
 
     static SurfaceCoeficients CalcSurfaceCoefficients(
                                               const std::vector<Vec3> contour);
@@ -49,13 +48,16 @@ public:
                                       const Vec3& direction) const;
     void VerifyPointInVolume(const Vec3& start, Vec3 &end) const;
 
-    Vec3 GetPointOnSurface() const;
     Vec3 GetRandomPointInContour(std::mt19937& rng) const;
+    const Vec3& GetMassCenter() const;
     const std::vector<Vec3>& GetContour() const ;
     const Vec3& GetNormal() const;
     bool IsSaveStat() const;
     const Reflector* GetReflector() const ;
     const SurfaceCoeficients& GetSurfaceCoefficients() const ;
+
+    static std::vector<double> CalcTriangleAreas(const std::vector<Vec3>& contour);
+    static Vec3 CalcCenterOfMass(const std::vector<Vec3>& contour);
 };
 
 

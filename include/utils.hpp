@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <math.h>
 
 class Surface;
 
@@ -43,8 +44,8 @@ public:
     Vec3 operator -(const Vec3& other) const;
     bool operator ==(const Vec3& other) const;
     bool operator !=(const Vec3& other) const;
-    std::ostream& operator <<(std::ostream& out) const ;
 };
+std::ostream& operator <<(std::ostream& out, const Vec3& vec);
 
 class ONBasis_3x3{
 private:
