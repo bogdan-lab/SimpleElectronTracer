@@ -1,5 +1,5 @@
-﻿#ifndef UTILS_HPP
-#define UTILS_HPP
+﻿#ifndef MATH_HPP
+#define MATH_HPP
 
 #include <iostream>
 #include <vector>
@@ -53,7 +53,9 @@ private:
     Vec3 j_;
     Vec3 k_;
 public:
-    ONBasis_3x3() = delete;
+    ONBasis_3x3(): i_(Vec3(1.0, 0.0, 0.0)),
+                   j_(Vec3(0.0, 1.0, 0.0)),
+                   k_(Vec3(0.0, 0.0, 1.0)) {}
     ONBasis_3x3(Vec3 i, Vec3 j, Vec3 k);
     explicit ONBasis_3x3(Vec3 given_z);
     Vec3 ApplyToVec(const Vec3& vec) const ;
@@ -64,13 +66,4 @@ public:
     const Vec3& GetZVec() const;
 };
 
-
-bool check_surface_orientations(const std::vector<std::unique_ptr<Surface>>& geo);
-
-
-std::vector<int> PrepareQuarterListForContour(const std::vector<Vec3>& contour,
-                                              const Vec3& point);
-int CalculateWindingNumber(const std::vector<int>& quarters,
-                           const std::vector<Vec3> contour,
-                           const Vec3& point);
-#endif //UTILS_HEADER
+#endif //MATH_HEADER

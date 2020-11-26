@@ -8,7 +8,7 @@
 
 #include "particle.hpp"
 #include "reflector.hpp"
-#include "utils.hpp"
+#include "math.hpp"
 
 class Reflector;
 class Particle;
@@ -32,9 +32,15 @@ private:
     Vec3 normal_;
     std::vector<double> tri_areas_;
     Vec3 mass_center_;
+    ONBasis_3x3 surf_basis_;
+    std::vector<Vec3> basis_contour_;
 
-    static SurfaceCoeficients CalcSurfaceCoefficients(
-                                              const std::vector<Vec3> contour);
+    int GetQuarter(const Vec3& point, const Vec3& node) const;
+    double GetOrientationWinding(const Vec3& point, const Vec3& prev_node,
+                                 const Vec3& next_node) const;
+    int CalcWindChange(const Vec3& prev_node, const Vec3& next_node,
+                            const Vec3& point) const ;
+
 public:
 
     Surface(std::vector<Vec3>&& g_contour,
@@ -43,7 +49,6 @@ public:
     void WriteFileHeader();
     void SaveParticle(Particle&& pt);
     bool CheckIfPointOnSurface(const Vec3& point) const;
-    std::vector<Vec3> TranslateContourIntoBasis(const ONBasis_3x3& basis) const;
     std::optional<Vec3> GetCrossPoint(const Vec3& position,
                                       const Vec3& direction) const;
     void VerifyPointInVolume(const Vec3& start, Vec3 &end) const;
@@ -58,6 +63,10 @@ public:
 
     static std::vector<double> CalcTriangleAreas(const std::vector<Vec3>& contour);
     static Vec3 CalcCenterOfMass(const std::vector<Vec3>& contour);
+    static std::vector<Vec3> TranslateContourIntoBasis(const ONBasis_3x3& basis,
+                                              const std::vector<Vec3>& contour);
+    static SurfaceCoeficients CalcSurfaceCoefficients(
+                                                const std::vector<Vec3> contour);
 };
 
 

@@ -3,7 +3,7 @@ add_library(tracer_lib STATIC
 	    particle.cpp
 	    reflector.cpp
 	    surface.cpp
-	    utils.cpp		
+	    math.cpp		
 )
 
 target_link_libraries(tracer_lib PUBLIC CONAN_PKG::fmt)

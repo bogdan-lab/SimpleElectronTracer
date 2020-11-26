@@ -8,7 +8,7 @@
 #include <functional>
 
 #include "surface.hpp"
-#include "utils.hpp"
+#include "math.hpp"
 
 class Surface;
 

@@ -7,7 +7,7 @@
 
 #include "particle.hpp"
 #include "surface.hpp"
-#include "utils.hpp"
+#include "math.hpp"
 #include "reflector.hpp"
 
 using json = nlohmann::json;
@@ -71,6 +71,21 @@ std::vector<std::unique_ptr<Surface>> load_geometry(const json& json_data){
         walls.push_back(read_surface_parameters(el, json_data["general"]));
     }
     return walls;
+}
+
+bool check_surface_orientations(const std::vector<std::unique_ptr<Surface>>& geo){
+    for(const auto& s : geo){
+        auto point = s->GetMassCenter();
+        auto direction = s->GetNormal();
+        auto found_crossetion = false;
+        for(const auto& other_s : geo){
+            if(other_s->GetCrossPoint(point, direction))
+                found_crossetion=true;
+        }
+        if(!found_crossetion)
+            return false;
+    }
+    return true;
 }
 
 int main(int argc, const char ** argv){

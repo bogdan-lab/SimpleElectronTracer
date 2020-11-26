@@ -3,7 +3,7 @@
 #include <random>
 #include <utility>
 
-#include "utils.hpp"
+#include "math.hpp"
 #include "surface.hpp"
 
 double Vec3::GetX() const {return x_;}
@@ -122,85 +122,4 @@ Vec3 ONBasis_3x3::FromThisCoorsToOriginal(const Vec3& vec) const{
 }
 
 
-bool check_surface_orientations(const std::vector<std::unique_ptr<Surface>>& geo){
-    for(const auto& s : geo){
-        auto point = s->GetMassCenter();
-        auto direction = s->GetNormal();
-        auto found_crossetion = false;
-        for(const auto& other_s : geo){
-            if(other_s->GetCrossPoint(point, direction))
-                found_crossetion=true;
-        }
-        if(!found_crossetion)
-            return false;
-    }
-    return true;
-}
 
-
-
-int GetQuarter(const Vec3& point, const Vec3& node){
-    if(node.GetX()>point.GetX() && node.GetY()>=point.GetY()){
-        return 0;
-    }
-    if(node.GetX()<=point.GetX() && node.GetY()>point.GetY()){
-        return 1;
-    }
-    if(node.GetX()<point.GetX() && node.GetY()<=point.GetY()){
-        return 2;
-    }
-    if(node.GetX()>=point.GetX() && node.GetY()<point.GetY()){
-        return 3;
-    }
-    fprintf(stderr, "INCORRECT QUARTER CALCULATION!");
-    exit(1);
-}
-
-
-std::vector<int> PrepareQuarterListForContour(const std::vector<Vec3> &contour,
-                                              const Vec3 &point){
-    std::vector<int> quarters(contour.size(), 0);
-    for(size_t i=0; i<contour.size(); i++){
-        quarters[i] = GetQuarter(point, contour[i]);
-    }
-    return quarters;
-}
-
-int CalculateWindingNumber(const std::vector<int>& quarters,
-                           const std::vector<Vec3> contour,
-                           const Vec3& point){
-    auto get_orient = [point](const Vec3& nod_prev, const Vec3& nod_next){
-        double tmp_1 = (nod_prev.GetX() - point.GetX())*
-                       (nod_next.GetY() - point.GetY());
-        double tmp_2 = (nod_next.GetX() - point.GetX())*
-                       (nod_prev.GetY() - point.GetY());
-        return  tmp_1 - tmp_2;
-    };
-    //Counting winding number
-    int winding_num = 0;
-    for(size_t i=0; i<quarters.size()-1; i++){
-        switch (quarters[i+1]-quarters[i]){
-            case 0:
-                break;
-            case 1:
-            case -3:{
-                winding_num++;
-            }break;
-            case -1:
-            case 3:{
-                winding_num--;
-            }break;
-            case 2:
-            case -2:{
-                double det = get_orient(contour[i], contour[i+1]);
-                winding_num += 2*abs(det)/det;
-            }break;
-            default:{
-                fprintf(stderr, "Something went wrong in count algo");
-                exit(1);
-            }
-        }
-    }
-    winding_num/=4;
-    return winding_num;
-}

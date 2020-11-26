@@ -5,7 +5,7 @@
 
 #include "particle.hpp"
 #include "surface.hpp"
-#include "utils.hpp"
+#include "math.hpp"
 
 class Surface;
 class Particle;

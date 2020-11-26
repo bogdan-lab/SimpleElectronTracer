@@ -18,6 +18,8 @@ Surface::Surface(std::vector<Vec3>&& g_contour,
     normal_ = Vec3(coefs_.A_, coefs_.B_, coefs_.C_).Norm();
     tri_areas_ = Surface::CalcTriangleAreas(contour_);
     mass_center_ = Surface::CalcCenterOfMass(contour_);
+    surf_basis_ = ONBasis_3x3(normal_);
+    basis_contour_ = Surface::TranslateContourIntoBasis(surf_basis_, contour_);
 }
 
 
@@ -99,11 +101,11 @@ void Surface::SaveParticle(Particle&& pt){
 }
 
 std::vector<Vec3> Surface::TranslateContourIntoBasis(
-        const ONBasis_3x3 &basis) const{
+        const ONBasis_3x3 &basis, const std::vector<Vec3>& contour){
     std::vector<Vec3> basis_contour;
-    basis_contour.reserve(contour_.size()+1);
-    for(size_t i=0; i<contour_.size(); i++){
-        basis_contour.push_back(basis.FromOriginalCoorsToThis(contour_[i]));
+    basis_contour.reserve(contour.size()+1);
+    for(size_t i=0; i<contour.size(); i++){
+        basis_contour.push_back(basis.FromOriginalCoorsToThis(contour[i]));
     }
     return basis_contour;
 }
@@ -115,17 +117,16 @@ bool Surface::CheckIfPointOnSurface(const Vec3& point) const{
     //where Z is parallel to the normal and than compare X and Y coordinates
     //of the point and surface polygon in order to answer the question whether
     //point is on the surface
-    ONBasis_3x3 surf_basis(normal_);
-    Vec3 basis_point = surf_basis.FromOriginalCoorsToThis(point);
-    std::vector<Vec3> basis_contour = TranslateContourIntoBasis(surf_basis);
-    if(!(basis_contour[0]==basis_contour[contour_.size()-1])){
-        basis_contour.push_back(basis_contour[0]); //loop contour
-    }
+    Vec3 basis_point = surf_basis_.FromOriginalCoorsToThis(point);
     //Counting rotations....
-    std::vector<int> quarters = PrepareQuarterListForContour(basis_contour,
-                                                             basis_point);
-    int winding_num = CalculateWindingNumber(quarters, basis_contour,
-                                             basis_point);
+    int winding_num = 0;
+    for(size_t i=0; i<basis_contour_.size()-1; i++){
+        winding_num += CalcWindChange(basis_contour_[i], basis_contour_[i+1],
+                basis_point);
+    }
+    winding_num += CalcWindChange(basis_contour_.back(), basis_contour_.front(),
+                                  basis_point);
+    winding_num/=4;
     return !(winding_num%2==0);
 }
 
@@ -168,5 +169,61 @@ void Surface::VerifyPointInVolume(const Vec3& start, Vec3& end) const {
         end = end - pt_direction.Times(defect/cos_alpha);
         from_s_to_point = Vec3(mass_center_, end);
         defect = from_s_to_point.Dot(normal_);
+    }
+}
+
+
+
+int Surface::GetQuarter(const Vec3& point, const Vec3& node) const {
+    if(node.GetX()>point.GetX() && node.GetY()>=point.GetY()){
+        return 0;
+    }
+    if(node.GetX()<=point.GetX() && node.GetY()>point.GetY()){
+        return 1;
+    }
+    if(node.GetX()<point.GetX() && node.GetY()<=point.GetY()){
+        return 2;
+    }
+    if(node.GetX()>=point.GetX() && node.GetY()<point.GetY()){
+        return 3;
+    }
+    fprintf(stderr, "INCORRECT QUARTER CALCULATION!");
+    exit(1);
+}
+
+
+double Surface::GetOrientationWinding(const Vec3& point,
+                         const Vec3& prev_node, const Vec3& next_node) const {
+    double tmp_1 = (prev_node.GetX() - point.GetX())*
+            (next_node.GetY() - point.GetY());
+    double tmp_2 = (next_node.GetX() - point.GetX())*
+            (prev_node.GetY() - point.GetY());
+    return  tmp_1 - tmp_2;
+}
+
+int Surface::CalcWindChange(const Vec3& prev_node, const Vec3& next_node,
+                            const Vec3& point) const {
+    int quarter_prev = GetQuarter(point, prev_node);
+    int quarter_next = GetQuarter(point, next_node);
+    switch (quarter_next-quarter_prev){
+    case 0:
+        return 0;
+    case 1:
+    case -3:{
+        return 1;
+    }
+    case -1:
+    case 3:{
+        return -1;
+    };
+    case 2:
+    case -2:{
+        double det = GetOrientationWinding(point, prev_node, next_node);
+        return 2*abs(det)/det;
+    }
+    default:{
+        fprintf(stderr, "Something went wrong in count algo");
+        exit(1);
+    }
     }
 }

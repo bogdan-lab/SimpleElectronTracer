@@ -1,6 +1,6 @@
 ﻿#include <gtest/gtest.h>
 #include <cmath>
-#include "utils.hpp"
+#include "math.hpp"
 
 
 TEST(Vec3Tests, ConstructorTests){

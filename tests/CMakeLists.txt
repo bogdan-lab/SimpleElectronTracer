@@ -6,7 +6,6 @@ add_executable(tracer_tests
 		surface_tests.cpp
 		reflector_tests.cpp
 		vector_tests.cpp
-		utils_tests.cpp
 		)
 
 target_link_libraries(tracer_tests PUBLIC tracer_lib gtest pthread)
