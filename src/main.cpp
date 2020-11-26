@@ -127,7 +127,7 @@ int main(int argc, const char ** argv){
     //************MAIN CYLE******************
     size_t traced_pt_num = 0;
     while(traced_pt_num<pt_num){
-          traced_pt_num = pt_generator(source_point, direction, rnd_gen)
+          traced_pt_num += pt_generator(source_point, direction, rnd_gen)
                                 .Trace(walls, gas, rnd_gen);
         if((traced_pt_num+1)%(pt_num/10)==0){
             printf("%.2lf %%\n" , static_cast<double>(100.0*traced_pt_num/pt_num));

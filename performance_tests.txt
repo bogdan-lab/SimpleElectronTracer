@@ -200,6 +200,16 @@ pt_num	total time, s
 ******************************************************************************************
 
 
+***********************************************
+Test with cleaned code
+Cube 1x1x1
+Pressure 100Pa
+All reflection coefficients = 50%
+Particle number = 1e6
+Dump buffer 1e4
+RESULT - 
+real	0m10,383s
+user	0m10,122s
+sys	0m0,056s
 
-
-
+Now Size of Surface is rather large 728 bytes...What if I reduce it to 64?
