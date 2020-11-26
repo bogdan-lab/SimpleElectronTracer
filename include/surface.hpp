@@ -29,7 +29,6 @@ private:
     std::unique_ptr<char[]> io_buffer_;
     std::ofstream output_file_;
     SurfaceCoeficients coefs_;
-    Vec3 normal_;
     std::vector<double> tri_areas_;
     Vec3 mass_center_;
     ONBasis_3x3 surf_basis_;

@@ -15,10 +15,9 @@ Surface::Surface(std::vector<Vec3>&& g_contour,
     io_buffer_(std::move(buff)), output_file_(std::move(out_file))
 {
     coefs_ = Surface::CalcSurfaceCoefficients(contour_);
-    normal_ = Vec3(coefs_.A_, coefs_.B_, coefs_.C_).Norm();
     tri_areas_ = Surface::CalcTriangleAreas(contour_);
     mass_center_ = Surface::CalcCenterOfMass(contour_);
-    surf_basis_ = ONBasis_3x3(normal_);
+    surf_basis_ = ONBasis_3x3(Vec3(coefs_.A_, coefs_.B_, coefs_.C_).Norm());
     basis_contour_ = Surface::TranslateContourIntoBasis(surf_basis_, contour_);
 }
 
@@ -70,7 +69,7 @@ Surface::SurfaceCoeficients Surface::CalcSurfaceCoefficients(
 }
 
 const std::vector<Vec3>& Surface::GetContour() const{return contour_;}
-const Vec3& Surface::GetNormal() const{return normal_;}
+const Vec3& Surface::GetNormal() const{return surf_basis_.GetZVec();}
 bool Surface::IsSaveStat() const{ return output_file_.is_open();}
 const Reflector* Surface::GetReflector() const {return reflector_.get();}
 const Vec3& Surface::GetMassCenter() const{return mass_center_;}
@@ -163,12 +162,12 @@ void Surface::VerifyPointInVolume(const Vec3& start, Vec3& end) const {
     Vec3 from_s_to_point(mass_center_, end);
     Vec3 pt_direction(start, end);
     pt_direction.Norm();
-    auto defect = from_s_to_point.Dot(normal_);
-    auto cos_alpha = normal_.Dot(pt_direction);
+    auto defect = from_s_to_point.Dot(GetNormal());
+    auto cos_alpha = GetNormal().Dot(pt_direction);
     while( defect<0){
         end = end - pt_direction.Times(defect/cos_alpha);
         from_s_to_point = Vec3(mass_center_, end);
-        defect = from_s_to_point.Dot(normal_);
+        defect = from_s_to_point.Dot(GetNormal());
     }
 }
 
