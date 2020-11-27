@@ -1,4 +1,5 @@
 ﻿
+find_package(OpenMP REQUIRED)
 add_library(tracer_lib STATIC
 	    particle.cpp
 	    reflector.cpp
@@ -6,7 +7,7 @@ add_library(tracer_lib STATIC
 	    math.cpp		
 )
 
-target_link_libraries(tracer_lib PUBLIC CONAN_PKG::fmt)
+target_link_libraries(tracer_lib PUBLIC CONAN_PKG::fmt OpenMP::OpenMP_CXX)
 
 set_target_properties(tracer_lib PROPERTIES
                         OUTPUT_NAME_DEBUG tracer_lib_debug

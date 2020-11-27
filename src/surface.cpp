@@ -4,6 +4,7 @@
 #include <list>
 #include <algorithm>
 #include <fmt/core.h>
+#include <omp.h>
 
 #include "surface.hpp"
 
@@ -87,6 +88,7 @@ void Surface::WriteFileHeader(){
 }
 
 void Surface::SaveParticle(Particle&& pt){
+        #pragma omp critical
         output_file_ << fmt::format("{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:d}\t{:d}\n",
                                     pt.GetPosition().GetX(),
                                     pt.GetPosition().GetY(),

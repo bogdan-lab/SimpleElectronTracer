@@ -2,6 +2,7 @@
 #include <random>
 #include <utility>
 #include <limits>
+#include <fmt/core.h>
 
 #include "particle.hpp"
 
@@ -101,9 +102,9 @@ int Particle::Trace(std::vector<std::unique_ptr<Surface>>& walls,
     }
     if(!found_crossection_with_surface){
         //should be that one particle which missed all surfaces due to double precision
-        fprintf(stderr, "Particle missed all surfacces\n");
-        fprintf(stderr, "POS = (%.6e ; %.6e ; %.6e) \t V = (%.6e ; %.6e ; %.6e)\n",
-                pos_.GetX(), pos_.GetY(), pos_.GetZ(), V_.GetX(), V_.GetY(), V_.GetZ());
+        std::cerr << fmt::format("Particle missed all surfacces\n"
+        "POS = ({:.6e} ; {:.6e} ; {:.6e}) \t V = ({:.6e} ; {:.6e} ; {:.6e})\n",
+        pos_.GetX(), pos_.GetY(), pos_.GetZ(), V_.GetX(), V_.GetY(), V_.GetZ());
         return 0;
     }
     if(colide_in_gas_flag){

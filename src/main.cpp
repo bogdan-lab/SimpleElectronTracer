@@ -4,6 +4,8 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <lyra/lyra.hpp>
+#include<fmt/core.h>
+#include <omp.h>
 
 #include "particle.hpp"
 #include "surface.hpp"
@@ -125,12 +127,25 @@ int main(int argc, const char ** argv){
 
     auto pt_generator = Particle::GetGenerator(is_dir_random);
     //************MAIN CYLE******************
-    size_t traced_pt_num = 0;
-    while(traced_pt_num<pt_num){
-          traced_pt_num += pt_generator(source_point, direction, rnd_gen)
-                                .Trace(walls, gas, rnd_gen);
-        if((traced_pt_num+1)%(pt_num/10)==0){
-            printf("%.2lf %%\n" , static_cast<double>(100.0*traced_pt_num/pt_num));
+    size_t thread_num = json_data["general"]["number_of_threads"].get<size_t>();
+    omp_set_dynamic(0);
+    omp_set_num_threads(static_cast<int>(thread_num));
+    std::vector<size_t> thread_load(thread_num, pt_num/thread_num);
+    thread_load.back() += pt_num % thread_num;
+    #pragma omp parallel
+    {
+        size_t traced_pt_num = 0;
+        size_t tid = static_cast<size_t>(omp_get_thread_num());
+        while(traced_pt_num<thread_load[tid]){
+            traced_pt_num += pt_generator(source_point, direction, rnd_gen)
+                    .Trace(walls, gas, rnd_gen);
+            #pragma omp master
+            {
+                if((traced_pt_num+1)%(thread_load[tid]/10)==0){
+                    std::cout << fmt::format("{:.2f} %\n",
+                    static_cast<double>(100.0*traced_pt_num/thread_load[tid]));
+                }
+            }
         }
     }
     //***********CYCLE END*******************
