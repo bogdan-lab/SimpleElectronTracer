@@ -10,8 +10,8 @@ TEST(MatrixTests, GenerationTest){
     EXPECT_TRUE(m.GetXVec()==i.Norm());
     EXPECT_TRUE(m.GetYVec()==j.Norm());
     EXPECT_TRUE(m.GetZVec()==k.Norm());
-    auto gen_test = [](const Vec3& i, const Vec3& j, const Vec3& k){
-                            return ONBasis_3x3(i, j, k);
+    auto gen_test = [](const Vec3& gi, const Vec3& gj, const Vec3& gk){
+                            return ONBasis_3x3(gi, gj, gk);
                         };
     Vec3 k_wrong(1.0, 2.0, 3.0);
     EXPECT_DEATH(gen_test(i, j, k_wrong), "Basis is not orthogonal!");

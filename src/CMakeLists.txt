@@ -4,10 +4,12 @@ add_library(tracer_lib STATIC
 	    particle.cpp
 	    reflector.cpp
 	    surface.cpp
-	    math.cpp		
+            math.cpp
+            loader.cpp
 )
 
 target_link_libraries(tracer_lib PUBLIC CONAN_PKG::fmt
+                                        CONAN_PKG::nlohmann_json
                                         OpenMP::OpenMP_CXX
                                         full_set_warnings)
 
@@ -20,7 +22,6 @@ add_executable(pt_tracer
 )
 
 target_link_libraries(pt_tracer PRIVATE tracer_lib
-                                        CONAN_PKG::nlohmann_json
                                         CONAN_PKG::lyra)
 
 set_target_properties(pt_tracer PROPERTIES
