@@ -4,6 +4,4 @@ Playing with the tracer
 
 ## Todo list
 
-1) Play with some OMP (particle buufer wraper for better bucket split?)
-2) Bufferize particles or OMP can use its own methods for chunks?
-
+- Check if Surface size reduction (to smth like 64) will increase speed. Need to switch to C arrays for that
