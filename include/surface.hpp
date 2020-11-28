@@ -26,7 +26,6 @@ public:
 private:
     std::vector<Vec3> contour_; 	//points which build the surface contour
     std::unique_ptr<Reflector> reflector_;
-    std::unique_ptr<char[]> io_buffer_;
     std::ofstream output_file_;
     SurfaceCoeficients coefs_;
     std::vector<double> tri_areas_;
@@ -43,10 +42,9 @@ private:
 public:
 
     Surface(std::vector<Vec3>&& g_contour,
-            std::unique_ptr<Reflector>&& g_reflector, std::ofstream&& out_file,
-             std::unique_ptr<char[]>&& buff);
+            std::unique_ptr<Reflector>&& g_reflector, std::ofstream&& out_file);
     void WriteFileHeader();
-    void SaveParticle(Particle&& pt);
+    void SaveParticle(const Particle& pt);
     bool CheckIfPointOnSurface(const Vec3& point) const;
     std::optional<Vec3> GetCrossPoint(const Vec3& position,
                                       const Vec3& direction) const;

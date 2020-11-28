@@ -18,6 +18,22 @@ set(WARNINGS_AS_ERRORS FALSE)
 include(./cmake/CompilerWarnings.cmake)
 set_project_warnings(full_set_warnings)
 
+if(BUILD_BENCHMARKS)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+if(BUILD_ASAN)
+    set (CMAKE_BUILD_TYPE Debug)
+    set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+    set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+endif()
+
+if(BUILD_TSAN)
+    set (CMAKE_BUILD_TYPE Debug)
+    set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=thread")
+endif()
+
+
 #CONAN
 find_program(CONAN conan)
 if (NOT CONAN)
@@ -31,17 +47,6 @@ conan_cmake_run(REQUIRES
                 fmt/7.1.0
         OPTIONS BASIC_SETUP CMAKE_TARGETS
         BUILD missing)
-
-
-if(BUILD_BENCHMARKS)
-    set(CMAKE_BUILD_TYPE Release)
-endif()
-
-if(BUILD_SANITIZE)
-    set (CMAKE_BUILD_TYPE Debug)
-    set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-    set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-endif()
 
 add_subdirectory(src)
 if(BUILD_TESTS)

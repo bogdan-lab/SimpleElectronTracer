@@ -3,6 +3,7 @@
 #include <utility>
 #include <limits>
 #include <fmt/core.h>
+#include <omp.h>
 
 #include "particle.hpp"
 
@@ -81,7 +82,7 @@ Vec3 Particle::GetRandomVel(const Vec3& direction,
 }
 
 
-int Particle::Trace(std::vector<std::unique_ptr<Surface>>& walls,
+size_t Particle::Trace(std::vector<std::unique_ptr<Surface>>& walls,
                         const Background& gas, std::mt19937 &rnd_gen){
     double min_dist = GetDistanceInGas(gas, rnd_gen);
     size_t wall_id = 0;
@@ -122,7 +123,8 @@ int Particle::Trace(std::vector<std::unique_ptr<Surface>>& walls,
     }
     //Here particle is dead --> save its position
     if (walls[wall_id]->IsSaveStat()){
-        walls[wall_id]->SaveParticle(std::move(*this));
+        //#pragma omp critical
+        walls[wall_id]->SaveParticle(*this);
     }
     return 1;
 }

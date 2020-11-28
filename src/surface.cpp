@@ -9,11 +9,10 @@
 #include "surface.hpp"
 
 Surface::Surface(std::vector<Vec3>&& g_contour,
-        std::unique_ptr<Reflector>&& g_reflector, std::ofstream&& out_file,
-                  std::unique_ptr<char[]>&& buff):
+        std::unique_ptr<Reflector>&& g_reflector, std::ofstream&& out_file):
     contour_(std::move(g_contour)),
     reflector_(std::move(g_reflector)),
-    io_buffer_(std::move(buff)), output_file_(std::move(out_file))
+    output_file_(std::move(out_file))
 {
     coefs_ = Surface::CalcSurfaceCoefficients(contour_);
     tri_areas_ = Surface::CalcTriangleAreas(contour_);
@@ -43,7 +42,9 @@ Vec3 Surface::CalcCenterOfMass(const std::vector<Vec3>& contour){
         y+=contour[i].GetY();
         z+=contour[i].GetZ();
     }
-    return {x/contour.size(), y/contour.size(), z/contour.size()};
+    return {x/static_cast<double>(contour.size()),
+            y/static_cast<double>(contour.size()),
+            z/static_cast<double>(contour.size())};
 }
 
 Vec3 Surface::GetRandomPointInContour(std::mt19937 &rng) const{
@@ -87,9 +88,9 @@ void Surface::WriteFileHeader(){
     }
 }
 
-void Surface::SaveParticle(Particle&& pt){
-        #pragma omp critical
-        output_file_ << fmt::format("{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:d}\t{:d}\n",
+void Surface::SaveParticle(const Particle& pt){
+    #pragma omp critical
+    output_file_ << fmt::format("{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:d}\t{:d}\n",
                                     pt.GetPosition().GetX(),
                                     pt.GetPosition().GetY(),
                                     pt.GetPosition().GetZ(),
@@ -220,7 +221,7 @@ int Surface::CalcWindChange(const Vec3& prev_node, const Vec3& next_node,
     case 2:
     case -2:{
         double det = GetOrientationWinding(point, prev_node, next_node);
-        return 2*abs(det)/det;
+        return det>0 ? 2 : -2;
     }
     default:{
         fprintf(stderr, "Something went wrong in count algo");

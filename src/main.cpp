@@ -31,8 +31,7 @@ Background load_background(const json& json_data){
             json_data["gas"]["pressure"].get<double>()};
 }
 
-std::unique_ptr<Surface> read_surface_parameters(const json& this_surf_data,
-                                const json& general_json){
+std::unique_ptr<Surface> read_surface_parameters(const json& this_surf_data){
     std::string name = this_surf_data["name"].get<std::string>();
     std::vector<Vec3> contour;
     for(const auto& el : this_surf_data["contour"]){
@@ -41,25 +40,20 @@ std::unique_ptr<Surface> read_surface_parameters(const json& this_surf_data,
     std::string ref_type = this_surf_data["reflector_type"].get<std::string>();
     double R = this_surf_data["reflection_coefficient"].get<double>();
     bool stat_flag = this_surf_data["collect_statistics"].get<bool>();
-    size_t dump_size = general_json["particle_dump_size"].get<size_t>();
     std::ofstream out_file;
-    std::unique_ptr<char[]> buff;
     if(stat_flag){
-        size_t buff_size = dump_size*sizeof(Particle);
-        buff = std::make_unique<char[]>(buff_size);
-        out_file.rdbuf()->pubsetbuf(buff.get(), buff_size);
         out_file.open(name, std::ios_base::app);
         if(!out_file.is_open()){fprintf(stderr, "could not open file\n"); exit(1);}
     }
     if(ref_type == "mirror"){
         return std::make_unique<Surface>(std::move(contour),
                    std::make_unique<MirrorReflector>(R),
-                   std::move(out_file), std::move(buff));
+                   std::move(out_file));
     }
     else if (ref_type == "cosine"){
         return std::make_unique<Surface>(std::move(contour),
               std::make_unique<LambertianReflector>(R),
-                  std::move(out_file), std::move(buff));
+                  std::move(out_file));
     }
     else {
         fprintf(stderr, "unknown reflector type %s", ref_type.c_str());
@@ -70,7 +64,7 @@ std::unique_ptr<Surface> read_surface_parameters(const json& this_surf_data,
 std::vector<std::unique_ptr<Surface>> load_geometry(const json& json_data){
     std::vector<std::unique_ptr<Surface>> walls;
     for(const auto& el : json_data["geometry"]){
-        walls.push_back(read_surface_parameters(el, json_data["general"]));
+        walls.push_back(read_surface_parameters(el));
     }
     return walls;
 }
@@ -122,12 +116,11 @@ int main(int argc, const char ** argv){
     Vec3 direction(json_data["particles"]["direction"].get<std::vector<double>>());
     bool is_dir_random = json_data["particles"]["is_dir_random"].get<bool>();
 
-    std::mt19937 rnd_gen;
-    rnd_gen.seed(static_cast<uint>(time(0)));
 
     auto pt_generator = Particle::GetGenerator(is_dir_random);
     //************MAIN CYLE******************
     size_t thread_num = json_data["general"]["number_of_threads"].get<size_t>();
+    if(thread_num<1) {std::cerr << "Wrong thread number\n"; exit(1);}
     omp_set_dynamic(0);
     omp_set_num_threads(static_cast<int>(thread_num));
     std::vector<size_t> thread_load(thread_num, pt_num/thread_num);
@@ -136,14 +129,16 @@ int main(int argc, const char ** argv){
     {
         size_t traced_pt_num = 0;
         size_t tid = static_cast<size_t>(omp_get_thread_num());
+        std::mt19937 rnd_gen;
+        rnd_gen.seed(static_cast<uint>(time(0))+tid);
         while(traced_pt_num<thread_load[tid]){
             traced_pt_num += pt_generator(source_point, direction, rnd_gen)
                     .Trace(walls, gas, rnd_gen);
             #pragma omp master
             {
                 if((traced_pt_num+1)%(thread_load[tid]/10)==0){
-                    std::cout << fmt::format("{:.2f} %\n",
-                    static_cast<double>(100.0*traced_pt_num/thread_load[tid]));
+                    std::cout << fmt::format("{:d} %\n",
+                    (100*(traced_pt_num+1))/thread_load[tid]);
                 }
             }
         }

@@ -8,7 +8,7 @@ add_executable(tracer_tests
 		vector_tests.cpp
 		)
 
-target_link_libraries(tracer_tests PUBLIC tracer_lib gtest pthread)
+target_link_libraries(tracer_tests PUBLIC tracer_lib gtest pthread full_set_warnings)
 
 add_test(
 	NAME AllTracerTests

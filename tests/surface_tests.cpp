@@ -3,13 +3,12 @@
 
 TEST(SurfaceTests, GenerationTest){
     std::ofstream file;
-    std::unique_ptr<char[]> buff;
     std::vector<Vec3> contour {Vec3(1.0, 0.0, 0.0),
                                Vec3(1.0, 0.0, 1.0),
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 1.0, 0.0)};
-    Surface s(std::move(contour), std::make_unique<MirrorReflector>(0.0), std::move(file),
-               std::move(buff));
+    Surface s(std::move(contour), std::make_unique<MirrorReflector>(0.0),
+              std::move(file));
     EXPECT_NEAR(s.GetNormal().Length(), 1.0, 1e-15);
     EXPECT_EQ(s.GetNormal().GetX(), -1.0);
     EXPECT_EQ(s.GetNormal().GetY(), 0.0);
@@ -25,13 +24,12 @@ TEST(SurfaceTests, GenerationTest){
 
 TEST(SurfaceTests, CheckIfPointOnSurface){
     std::ofstream file;
-    std::unique_ptr<char[]> buff;
     std::vector<Vec3> contour {Vec3(1.0, 0.0, 0.0),
                                Vec3(1.0, 0.0, 1.0),
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 1.0, 0.0)};
-    Surface s(std::move(contour), std::make_unique<MirrorReflector>(0.0), std::move(file),
-               std::move(buff));
+    Surface s(std::move(contour), std::make_unique<MirrorReflector>(0.0),
+              std::move(file));
     Vec3 point(1.0, 0.5, 0.7);
     EXPECT_TRUE(s.CheckIfPointOnSurface(point));
     Vec3 point1(1.0+0.1, 0.5, 0.7);
@@ -43,14 +41,12 @@ TEST(SurfaceTests, CheckIfPointOnSurface){
 
 TEST(SurfaceTests, VerifyPointOnSurfaceTest){
     std::ofstream file;
-    std::unique_ptr<char[]> buff;
     std::vector<Vec3> contour {Vec3(1.0, 0.0, 0.0),
                                Vec3(1.0, 0.0, 1.0),
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 1.0, 0.0)};
     std::unique_ptr<Surface> s = std::make_unique<Surface>(std::move(contour),
-           std::make_unique<MirrorReflector>(0.0), std::move(file),
-            std::move(buff));
+           std::make_unique<MirrorReflector>(0.0), std::move(file));
     Vec3 end(1+2e-6, 0.5, 0.4);
     Vec3 start(0.5, 0.5, 0.4);
     s->VerifyPointInVolume(start, end);
@@ -89,8 +85,7 @@ TEST(SurfaceTests, RandomPointGeneration){
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 2.0, 0.0)};
     std::unique_ptr<Surface> s = std::make_unique<Surface>(std::move(contour),
-           std::make_unique<MirrorReflector>(0.0), std::move(file),
-            std::move(buff));
+           std::make_unique<MirrorReflector>(0.0), std::move(file));
     for(size_t i=0; i<100; i++){
         Vec3 point = s->GetRandomPointInContour(rng);
         EXPECT_TRUE(s->CheckIfPointOnSurface(point));

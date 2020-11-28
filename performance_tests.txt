@@ -213,3 +213,17 @@ user	0m10,122s
 sys	0m0,056s
 
 Now Size of Surface is rather large 728 bytes...What if I reduce it to 64?
+
+
+
+
+
+
+**************************************************
+parallel tests
+1e7 6-threads 100Pa --> 33.7 s
+1e7 1-thread 100Pa --> 101.4 s
+
+1e7 6-threads 500Pa --> 244.7 s
+1e7 1-thread 500Pa --> 1130 s
+

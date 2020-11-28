@@ -7,7 +7,9 @@ add_library(tracer_lib STATIC
 	    math.cpp		
 )
 
-target_link_libraries(tracer_lib PUBLIC CONAN_PKG::fmt OpenMP::OpenMP_CXX)
+target_link_libraries(tracer_lib PUBLIC CONAN_PKG::fmt
+                                        OpenMP::OpenMP_CXX
+                                        full_set_warnings)
 
 set_target_properties(tracer_lib PROPERTIES
                         OUTPUT_NAME_DEBUG tracer_lib_debug
