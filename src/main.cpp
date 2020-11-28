@@ -32,10 +32,6 @@ int main(int argc, const char ** argv){
     json json_data = load_json_config(config_file);
     Background gas = load_background(json_data);
     std::vector<std::unique_ptr<Surface>> walls = load_geometry(json_data);
-    std::for_each(walls.cbegin(), walls.cend(),
-                  [](const std::unique_ptr<Surface>& s){
-                                s->WriteFileHeader();
-                    });
     size_t pt_num = json_data["particles"]["number"].get<size_t>();
     Vec3 source_point(json_data["particles"]["source_point"].get<std::vector<double>>());
     Vec3 direction(json_data["particles"]["direction"].get<std::vector<double>>());
@@ -54,11 +50,20 @@ int main(int argc, const char ** argv){
     {
         size_t traced_pt_num = 0;
         size_t tid = static_cast<size_t>(omp_get_thread_num());
+
+        std::ofstream output_file(fmt::format("thread_{:d}", tid),
+                                  std::ios_base::app);
+        if(!output_file.is_open()){
+            std::cerr << fmt::format("Cannot open file for thread {:d}\n", tid);
+            exit(1);
+        }
+        output_file << "#POS_X\tPOS_Y\tPOS_Z"
+                     << "\tVX\tVY\tVZ\tVolumeCount\tSurfaceCount\n";
         std::mt19937 rnd_gen;
         rnd_gen.seed(static_cast<uint>(time(0))+tid);
         while(traced_pt_num<thread_load[tid]){
             traced_pt_num += pt_generator(source_point, direction, rnd_gen)
-                    .Trace(walls, gas, rnd_gen);
+                    .Trace(walls, gas, rnd_gen, output_file);
             #pragma omp master
             {
                 if((traced_pt_num+1)%(thread_load[tid]/10)==0){

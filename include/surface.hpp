@@ -26,12 +26,12 @@ public:
 private:
     std::vector<Vec3> contour_; 	//points which build the surface contour
     std::unique_ptr<Reflector> reflector_;
-    std::ofstream output_file_;
     SurfaceCoeficients coefs_;
     std::vector<double> tri_areas_;
     Vec3 mass_center_;
     ONBasis_3x3 surf_basis_;
     std::vector<Vec3> basis_contour_;
+    bool save_stat_flag_;
 
     int GetQuarter(const Vec3& point, const Vec3& node) const;
     double GetOrientationWinding(const Vec3& point, const Vec3& prev_node,
@@ -41,10 +41,8 @@ private:
 
 public:
 
-    Surface(std::vector<Vec3>&& g_contour,
-            std::unique_ptr<Reflector>&& g_reflector, std::ofstream&& out_file);
-    void WriteFileHeader();
-    void SaveParticle(const Particle& pt);
+    Surface(std::vector<Vec3>&& g_contour, std::unique_ptr<Reflector>&& g_reflector,
+            bool g_save_stat_flag);
     bool CheckIfPointOnSurface(const Vec3& point) const;
     std::optional<Vec3> GetCrossPoint(const Vec3& position,
                                       const Vec3& direction) const;

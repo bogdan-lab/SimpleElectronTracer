@@ -31,8 +31,9 @@ public:
                             std::mt19937& rnd_gen) const;
     void MakeGasCollision(const double distance,
                           std::mt19937& rnd_gen);
-    size_t Trace(std::vector<std::unique_ptr<Surface>>& walls, const Background& gas,
-                  std::mt19937& rnd_gen);
+    size_t Trace(const std::vector<std::unique_ptr<Surface>>& walls,
+                 const Background& gas, std::mt19937& rnd_gen,
+                 std::ofstream& output_file);
     Vec3 GetRandomVel(const Vec3& direction, std::mt19937& rnd_gen) const;
 
     const Vec3& GetPosition() const;

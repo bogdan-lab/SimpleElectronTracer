@@ -9,10 +9,11 @@
 #include "surface.hpp"
 
 Surface::Surface(std::vector<Vec3>&& g_contour,
-        std::unique_ptr<Reflector>&& g_reflector, std::ofstream&& out_file):
+        std::unique_ptr<Reflector>&& g_reflector,
+        bool g_save_stat_flag):
     contour_(std::move(g_contour)),
     reflector_(std::move(g_reflector)),
-    output_file_(std::move(out_file))
+    save_stat_flag_(g_save_stat_flag)
 {
     coefs_ = Surface::CalcSurfaceCoefficients(contour_);
     tri_areas_ = Surface::CalcTriangleAreas(contour_);
@@ -72,34 +73,13 @@ Surface::SurfaceCoeficients Surface::CalcSurfaceCoefficients(
 
 const std::vector<Vec3>& Surface::GetContour() const{return contour_;}
 const Vec3& Surface::GetNormal() const{return surf_basis_.GetZVec();}
-bool Surface::IsSaveStat() const{ return output_file_.is_open();}
+bool Surface::IsSaveStat() const{ return save_stat_flag_;}
 const Reflector* Surface::GetReflector() const {return reflector_.get();}
 const Vec3& Surface::GetMassCenter() const{return mass_center_;}
 
 
 const Surface::SurfaceCoeficients& Surface::GetSurfaceCoefficients() const {
     return coefs_;
-}
-
-void Surface::WriteFileHeader(){
-    if(output_file_.is_open()){
-        output_file_ << "#POS_X\tPOS_Y\tPOS_Z"
-                     << "\tVX\tVY\tVZ\tVolumeCount\tSurfaceCount\n";
-    }
-}
-
-void Surface::SaveParticle(const Particle& pt){
-    #pragma omp critical
-    output_file_ << fmt::format("{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:d}\t{:d}\n",
-                                    pt.GetPosition().GetX(),
-                                    pt.GetPosition().GetY(),
-                                    pt.GetPosition().GetZ(),
-                                    pt.GetDirection().GetX(),
-                                    pt.GetDirection().GetY(),
-                                    pt.GetDirection().GetZ(),
-                                    pt.GetVolCount(),
-                                    pt.GetSurfCount());
-
 }
 
 std::vector<Vec3> Surface::TranslateContourIntoBasis(

@@ -2,13 +2,13 @@
 #include "surface.hpp"
 
 TEST(SurfaceTests, GenerationTest){
-    std::ofstream file;
+    bool save_stat=false;
     std::vector<Vec3> contour {Vec3(1.0, 0.0, 0.0),
                                Vec3(1.0, 0.0, 1.0),
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 1.0, 0.0)};
     Surface s(std::move(contour), std::make_unique<MirrorReflector>(0.0),
-              std::move(file));
+              save_stat);
     EXPECT_NEAR(s.GetNormal().Length(), 1.0, 1e-15);
     EXPECT_EQ(s.GetNormal().GetX(), -1.0);
     EXPECT_EQ(s.GetNormal().GetY(), 0.0);
@@ -23,13 +23,13 @@ TEST(SurfaceTests, GenerationTest){
 
 
 TEST(SurfaceTests, CheckIfPointOnSurface){
-    std::ofstream file;
+    bool save_stat=false;
     std::vector<Vec3> contour {Vec3(1.0, 0.0, 0.0),
                                Vec3(1.0, 0.0, 1.0),
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 1.0, 0.0)};
     Surface s(std::move(contour), std::make_unique<MirrorReflector>(0.0),
-              std::move(file));
+              save_stat);
     Vec3 point(1.0, 0.5, 0.7);
     EXPECT_TRUE(s.CheckIfPointOnSurface(point));
     Vec3 point1(1.0+0.1, 0.5, 0.7);
@@ -40,13 +40,13 @@ TEST(SurfaceTests, CheckIfPointOnSurface){
 
 
 TEST(SurfaceTests, VerifyPointOnSurfaceTest){
-    std::ofstream file;
+    bool save_stat=false;
     std::vector<Vec3> contour {Vec3(1.0, 0.0, 0.0),
                                Vec3(1.0, 0.0, 1.0),
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 1.0, 0.0)};
     std::unique_ptr<Surface> s = std::make_unique<Surface>(std::move(contour),
-           std::make_unique<MirrorReflector>(0.0), std::move(file));
+           std::make_unique<MirrorReflector>(0.0), save_stat);
     Vec3 end(1+2e-6, 0.5, 0.4);
     Vec3 start(0.5, 0.5, 0.4);
     s->VerifyPointInVolume(start, end);
@@ -78,14 +78,14 @@ TEST(SurfaceTests, TriangleAreas){
 
 TEST(SurfaceTests, RandomPointGeneration){
     std::mt19937 rng(42u);
-    std::ofstream file;
+    bool save_stat=false;
     std::unique_ptr<char[]> buff;
     std::vector<Vec3> contour {Vec3(1.0, 0.0, 0.0),
                                Vec3(1.0, 0.0, 1.0),
                                Vec3(1.0, 1.0, 1.0),
                                Vec3(1.0, 2.0, 0.0)};
     std::unique_ptr<Surface> s = std::make_unique<Surface>(std::move(contour),
-           std::make_unique<MirrorReflector>(0.0), std::move(file));
+           std::make_unique<MirrorReflector>(0.0), save_stat);
     for(size_t i=0; i<100; i++){
         Vec3 point = s->GetRandomPointInContour(rng);
         EXPECT_TRUE(s->CheckIfPointOnSurface(point));

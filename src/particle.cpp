@@ -82,8 +82,9 @@ Vec3 Particle::GetRandomVel(const Vec3& direction,
 }
 
 
-size_t Particle::Trace(std::vector<std::unique_ptr<Surface>>& walls,
-                        const Background& gas, std::mt19937 &rnd_gen){
+size_t Particle::Trace(const std::vector<std::unique_ptr<Surface>>& walls,
+                        const Background& gas, std::mt19937 &rnd_gen,
+                       std::ofstream& output_file){
     double min_dist = GetDistanceInGas(gas, rnd_gen);
     size_t wall_id = 0;
     Vec3 point_on_surf;
@@ -110,7 +111,7 @@ size_t Particle::Trace(std::vector<std::unique_ptr<Surface>>& walls,
     }
     if(colide_in_gas_flag){
         MakeGasCollision(min_dist, rnd_gen);
-        return Trace(walls, gas, rnd_gen);
+        return Trace(walls, gas, rnd_gen, output_file);
     }
     //Here we collide with surface --> can die
     pos_ = point_on_surf;
@@ -119,12 +120,15 @@ size_t Particle::Trace(std::vector<std::unique_ptr<Surface>>& walls,
                                            walls[wall_id]->GetNormal(), rnd_gen);
     if(surf_refl){
         V_ = surf_refl.value();
-        return Trace(walls, gas, rnd_gen);
+        return Trace(walls, gas, rnd_gen, output_file);
     }
     //Here particle is dead --> save its position
     if (walls[wall_id]->IsSaveStat()){
-        //#pragma omp critical
-        walls[wall_id]->SaveParticle(*this);
+        output_file << fmt::format("{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:.6e}\t{:d}\t{:d}\n",
+                                    pos_.GetX(), pos_.GetY(), pos_.GetZ(),
+                                    V_.GetX(), V_.GetY(), V_.GetZ(),
+                                    vol_count_, surf_count_);
+
     }
     return 1;
 }

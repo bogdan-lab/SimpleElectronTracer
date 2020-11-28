@@ -20,7 +20,7 @@ Background load_background(const json& json_data){
 }
 
 std::unique_ptr<Surface> read_surface_parameters(const json& this_surf_data){
-    std::string name = this_surf_data["name"].get<std::string>();
+    //std::string name = this_surf_data["name"].get<std::string>();
     std::vector<Vec3> contour;
     for(const auto& el : this_surf_data["contour"]){
         contour.push_back(Vec3(el.get<std::vector<double>>()));
@@ -28,20 +28,15 @@ std::unique_ptr<Surface> read_surface_parameters(const json& this_surf_data){
     std::string ref_type = this_surf_data["reflector_type"].get<std::string>();
     double R = this_surf_data["reflection_coefficient"].get<double>();
     bool stat_flag = this_surf_data["collect_statistics"].get<bool>();
-    std::ofstream out_file;
-    if(stat_flag){
-        out_file.open(name, std::ios_base::app);
-        if(!out_file.is_open()){fprintf(stderr, "could not open file\n"); exit(1);}
-    }
     if(ref_type == "mirror"){
         return std::make_unique<Surface>(std::move(contour),
                    std::make_unique<MirrorReflector>(R),
-                   std::move(out_file));
+                   stat_flag);
     }
     else if (ref_type == "cosine"){
         return std::make_unique<Surface>(std::move(contour),
               std::make_unique<LambertianReflector>(R),
-                  std::move(out_file));
+                  stat_flag);
     }
     else {
         fprintf(stderr, "unknown reflector type %s", ref_type.c_str());
